@@ -1,0 +1,64 @@
+<!-- templates/navbar.html -->
+<section class="navigation-section">
+    <div class="navigation-section-container">
+        <nav class="navbar navbar-expand-md navbar-dark" style="background-color: #D6A2AD;">
+            <!-- Brand -->
+            <a class="navbar-brand" href="#">Ladies Amana</a>
+
+            <!-- Toggler/collapsible Button -->
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar links -->
+            <div class="collapse navbar-collapse" id="collapsibleNavbar">
+                <ul class="navbar-nav mr-auto">
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <!-- Add staff-specific links here if needed -->
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link link" href="{% url 'login_App:user_dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link link" href="{% url 'mtaji_App:mtaji' %}">Mtaji</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link link" href="{% url 'michango_App:michango' %}">Michango ya kila mwezi</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link link" href="{% url 'swadaqa_App:swadaqa' %}">Swadaqa</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link link" href="{% url 'mkopo_App:loan_request' %}">Mkopo</a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link link" href="{% url 'login_App:edit_info' %}">Edit Info</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'login_App:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="nav-link btn btn-link" style="color:inherit;">Logout</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link link" href="{% url 'login_App:register' %}">Register</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link link" href="{% url 'login_App:login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link link" href="{% url 'admin_App:admin_login' %}">Admin</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </div>
+</section>

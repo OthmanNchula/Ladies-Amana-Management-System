@@ -1,0 +1,36 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="container mt-3">
+    <div class="row">
+        <div class="table-responsive full-width-table">
+            <table class="table table-striped ">
+                <thead>
+                    <tr>
+                        <th>Na</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Phone Number</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.profile.first_name }}</td>
+                        <td>{{ user.profile.last_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.profile.phone_number }}</td>
+                        <td>
+                            <a href="{% url 'admin_App:manage_user' user.id %}" class="btn btn-sm" style="background-color: #D6A2AD">Manage</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="jumbotron text-center">
+        <h1 class="display-4" style="color: #D6A2AD;">Welcome to Ladies Amana</h1>
+        <p class="lead">A community for empowering women through financial management and support.</p>
+        <hr class="my-4">
+        <p>Explore our services to manage your finances, contribute to community projects, and apply for loans.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'login_App:register' %}" role="button">Join Us</a>
+    </div>
+</div>
+{% endblock %}

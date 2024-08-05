@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+<section class="register-section">
+    <div class="register-section-container">
+        <h1 class="text-center mt-3" style="color: rgb(122, 4, 107);">Login Here</h1>
+        <div class="row">
+            <div class="col-12 col-md-3"></div>
+            <div class="col-12 col-md-6">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4 text-center">WELCOME TO LADIES AMANA PORTAL</legend>
+                        <div class="form-group">
+                            {{ form.first_name|as_crispy_field }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.last_name|as_crispy_field }}
+                        </div>
+                        <div class="form-group">
+                            {{ form.password|as_crispy_field }}
+                        </div>
+                    </fieldset>
+                    <div class="form-group">
+                        <input style="background-color: #D6A2AD" class="btn btn-block text-dark" type="submit" value="Login">
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <p>Not a member? <a style="color: #D6A2AD" href="{% url 'login_App:register' %}">Register</a></p>
+                </div>
+            </div>
+            <div class="col-12 col-md-3"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}

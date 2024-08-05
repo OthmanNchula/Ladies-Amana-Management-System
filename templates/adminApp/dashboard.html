@@ -1,0 +1,88 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="container mt-1">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Idadi ya members</h5>
+                    <p class="card-text">{{ total_members }}</p>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Jumla ya mtaji</h5>
+                    <p class="card-text">{{ total_mtaji }}</p>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Jumla ya michango</h5>
+                    <p class="card-text">{{ total_michango }}</p>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Jumla ya Swadaqa</h5>
+                    <p class="card-text">{{ total_swadaqa }}</p>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Jumla ya mkopo</h5>
+                    <p class="card-text">{{ total_loans }}</p>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Idadi ya maombi ya mkopo</h5>
+                    <p class="card-text">{{ loan_requests }}</p>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Mikopo iliyokubaliwa</h5>
+                    <p class="card-text">{{ approved_loans }}</p>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Mikopo iliyokataliwa</h5>
+                    <p class="card-text">{{ rejected_loans }}</p>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Report</h5>
+                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

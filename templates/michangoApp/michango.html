@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center">Michango ya Kila Mwezi - <span id="selected-year">{{ current_year }}</span></h1>
+    <div class="row mt-5">
+        <div class="col-md-3">
+            <div class="list-group" id="year-list">
+                {% for year in years %}
+                    <a href="javascript:void(0);" class="list-group-item list-group-item-action year-link" data-year="{{ year }}">{{ year }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="table-responsive" style="max-width: 400px; margin: auto;">
+                <table class="table mtaji-table">
+                    <thead>
+                        <tr>
+                            <th class="col-6">Mwezi</th>
+                            <th class="col-6">Kiasi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contributions-body">
+                        {% for month in months %}
+                            <tr>
+                                <td>{{ month }}</td>
+                                <td id="amount-{{ month }}">-</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td style="font-weight: bold;">Total</td>
+                            <td id="total-amount">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="btn btn-block" style="background-color: #D6A2AD">Lipa Michango</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const yearLinks = document.querySelectorAll('.year-link');
+        const selectedYearElement = document.getElementById('selected-year');
+        const totalAmountElement = document.getElementById('total-amount');
+
+        yearLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                yearLinks.forEach(link => link.classList.remove('active'));
+                this.classList.add('active');
+
+                const selectedYear = this.getAttribute('data-year');
+                selectedYearElement.innerText = selectedYear;
+
+                fetch(`/michango/data/${selectedYear}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let totalAmount = 0;
+                        for (let month = 1; month <= 12; month++) {
+                            const amountElement = document.getElementById(`amount-${month}`);
+                            const amount = data[month] ? data[month] : '-';
+                            amountElement.innerText = amount;
+                            if (data[month]) {
+                                totalAmount += parseFloat(data[month]);
+                            }
+                        }
+                        totalAmountElement.innerText = totalAmount;
+                    });
+            });
+        });
+
+        // Trigger click for the current year to display initial data
+        document.querySelector(`.year-link[data-year="{{ current_year }}"]`).classList.add('active');
+        document.querySelector(`.year-link[data-year="{{ current_year }}"]`).click();
+    });
+</script>
+{% endblock %}

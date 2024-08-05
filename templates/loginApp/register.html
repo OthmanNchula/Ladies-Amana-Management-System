@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<section class="register-section">
+    <div class="container mt-5">
+        <h1 class="text-center mt-3" style="color: rgb(122, 4, 107);">Register Here</h1>
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8">
+                <form method="post" action="">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="first_name">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="last_name">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="nida">NIDA</label>
+                            <input type="text" class="form-control" id="nida" name="nida" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="birth_date">Birth Date</label>
+                            <input type="date" class="form-control" id="birth_date" name="birth_date" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="gender">Gender</label><br>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender" id="gender_female" value="Female" required>
+                                <label class="form-check-label" for="gender_female">Female</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender" id="gender_male" value="Male" required>
+                                <label class="form-check-label" for="gender_male">Male</label>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="phone_number">Phone Number</label>
+                            <input type="text" class="form-control" id="phone_number" name="phone_number" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="next_of_kin_first_name">Next of Kin - First Name</label>
+                            <input type="text" class="form-control" id="next_of_kin_first_name" name="next_of_kin_first_name" required>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="next_of_kin_last_name">Next of Kin - Last Name</label>
+                            <input type="text" class="form-control" id="next_of_kin_last_name" name="next_of_kin_last_name" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="next_of_kin_phone_number">Next of Kin - Phone Number</label>
+                        <input type="text" class="form-control" id="next_of_kin_phone_number" name="next_of_kin_phone_number" required>
+                    </div>
+                
+                    <div class="form-group">
+                        <label for="password1">Password</label>
+                        <input type="password" class="form-control" id="password1" name="password1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password2">Confirm Password</label>
+                        <input type="password" class="form-control" id="password2" name="password2" required>
+                    </div>
+                    <div class="form-group">
+                        <input style="background-color:  #D6A2AD;" class="btn btn-block" type="submit" value="Register">
+                    </div>
+                </form>
+                <div class="text-center mt-3">
+                    <p>Are you already a member? <a style="color: #D6A2AD" href="{% url 'login_App:login' %}">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

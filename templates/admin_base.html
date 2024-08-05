@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ladies Amana</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}" />
+    <link rel="stylesheet" href="{% static 'bootstrap/css/styles.css' %}" />
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+    <style>
+        body {
+            background-color: #fbfbfb;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+        .wrapper {
+            display: flex;
+            flex: 1;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            padding: 58px 0 0;
+            box-shadow: 0 2px 5px 0 rgb(0 0 0 / 5%), 0 2px 10px 0 rgb(0 0 0 / 5%);
+            width: 250px;
+            z-index: 600;
+            background-color: #f8f9fa;
+            overflow-y: auto;
+        }
+        .main-content {
+            margin-left: 0px;
+            padding: 20px;
+            flex: 1;
+            overflow-x: auto;
+        }
+        .sidebar .active {
+            border-radius: 5px;
+            box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+        }
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 58px);
+            padding-top: 0.5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .full-width-table {
+            width: 100%;
+            min-width: 800px;
+        }
+        .submenu-arrow {
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="wrapper">
+        {% if user.is_staff %}
+            <nav class="sidebar sidebar-sticky bg-white">
+                <div class="position-sticky">
+                    <div class="list-group list-group-flush mx-3 mt-4">
+                        <a href="{% url 'admin_App:admin_dashboard' %}" class="list-group-item list-group-item-action" data-section="dashboard">
+                            <i class="fas fa-tachometer-alt fa-fw me-3"></i><span>Dashboard</span>
+                        </a>
+                        <a href="{% url 'admin_App:members' %}" class="list-group-item list-group-item-action" data-section="user">
+                            <i class="fas fa-user fa-fw me-3"></i><span>Wanachama</span>
+                        </a>
+                        <a href="{% url 'admin_App:mitaji' %}" class="list-group-item list-group-item-action" data-section="loan_requests">
+                            <i class="fas fa-file-invoice-dollar fa-fw me-3"></i><span>Mitaji</span>
+                        </a>
+                        <a href="{% url 'admin_App:michango' %}" class="list-group-item list-group-item-action" data-section="approved_loans">
+                            <i class="fas fa-check fa-fw me-3"></i><span>Michango</span>
+                        </a>
+                        <a href="#mikopoSubmenu" class="list-group-item list-group-item-action" data-toggle="collapse" aria-expanded="false">
+                            <i class="fas fa-file-invoice-dollar fa-fw me-3"></i><span>Mikopo</span>
+                            <i class="fas fa-chevron-down submenu-arrow"></i>
+                        </a>
+                        <div class="collapse" id="mikopoSubmenu">
+                            <a href="{% url 'admin_App:members_loans' %}" class="list-group-item list-group-item-action ml-3">Members Loan</a>
+                            <a href="{% url 'admin_App:loan_requests' %}" class="list-group-item list-group-item-action ml-3">Loan Requests</a>
+                            <a href="{% url 'admin_App:approved_loans' %}" class="list-group-item list-group-item-action ml-3">Approved Loans</a>
+                            <a href="{% url 'admin_App:rejected_loans' %}" class="list-group-item list-group-item-action ml-3">Rejected Loans</a>
+                        </div>
+                        <a href="#" class="list-group-item list-group-item-action" data-section="report">
+                            <i class="fas fa-chart-line fa-fw me-3"></i><span>mengineyo</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" data-section="report">
+                            <i class="fas fa-chart-line fa-fw me-3"></i><span>Ripoti</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        {% endif %}
+        <div class="main-content">
+            {% if show_back_button %}
+                <button class="btn back-button mb-3" style="background-color: #D6A2AD" onclick="history.back()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+            {% endif %}
+            {% if messages %} 
+                {% for message in messages %} 
+                <p class="text-success text-center">{{ message }}</p>
+                {% endfor %} 
+            {% endif %} 
+            {% block content %} 
+            {% endblock %}
+        </div>
+    </div>
+    {% include 'footer.html' %}
+</body>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebarLinks = document.querySelectorAll('.list-group-item-action');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                sidebarLinks.forEach(link => link.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+
+        const currentUrl = window.location.href;
+        sidebarLinks.forEach(link => {
+            if (link.href === currentUrl) {
+                link.classList.add('active');
+                if (link.getAttribute('data-toggle') === 'collapse') {
+                    link.setAttribute('aria-expanded', 'true');
+                    const submenu = link.nextElementSibling;
+                    if (submenu) {
+                        submenu.classList.add('show');
+                    }
+                }
+            } else if (currentUrl.startsWith(link.href) && link.getAttribute('data-toggle') === 'collapse') {
+                link.setAttribute('aria-expanded', 'true');
+                const submenu = link.nextElementSibling;
+                if (submenu) {
+                    submenu.classList.add('show');
+                }
+            }
+        });
+
+        const submenuLinks = document.querySelectorAll('.collapse .list-group-item-action');
+        submenuLinks.forEach(link => {
+            if (link.href === currentUrl) {
+                link.classList.add('active');
+                const parentMenu = link.closest('.collapse');
+                if (parentMenu) {
+                    const parentLink = parentMenu.previousElementSibling;
+                    parentLink.setAttribute('aria-expanded', 'true');
+                    parentMenu.classList.add('show');
+                }
+            }
+        });
+
+        // Toggle submenu arrow direction
+        const toggleSubmenuArrows = () => {
+            const collapseElements = document.querySelectorAll('.collapse');
+            collapseElements.forEach(collapse => {
+                const parentLink = collapse.previousElementSibling;
+                if (collapse.classList.contains('show')) {
+                    parentLink.querySelector('.submenu-arrow').classList.remove('fa-chevron-down');
+                    parentLink.querySelector('.submenu-arrow').classList.add('fa-chevron-up');
+                } else {
+                    parentLink.querySelector('.submenu-arrow').classList.remove('fa-chevron-up');
+                    parentLink.querySelector('.submenu-arrow').classList.add('fa-chevron-down');
+                }
+            });
+        };
+
+        document.querySelectorAll('[data-toggle="collapse"]').forEach(link => {
+            link.addEventListener('click', function () {
+                setTimeout(toggleSubmenuArrows, 300); // Delay to match Bootstrap collapse animation
+            });
+        });
+
+        toggleSubmenuArrows(); // Initial call to set correct arrow direction
+    });
+</script>
+</html>

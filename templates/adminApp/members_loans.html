@@ -1,0 +1,63 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-1">
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Jumla ya Mikopo ya miaka yote</h5>
+                    <p class="card-text">{{ total_loans|floatformat:2  }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Jumla ya Mikopo ya mwaka {{ selected_year }}</h5>
+                    <p class="card-text">{{ total_year_loans|floatformat:2  }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group">
+                {% for year in years %}
+                    <a href="?year={{ year }}" class="list-group-item list-group-item-action {% if year == selected_year %}active{% endif %}">
+                        {{ year }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <h2 class="text-center">Mikopo ya mwaka - {{ selected_year }}</h2>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Phone Number</th>
+                            <th>Loan Status</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in members_loans_info %}
+                        <tr>
+                            <td>{{ member.username }}</td>
+                            <td>{{ member.phone_number }}</td>
+                            <td>{{ member.loan_status }}</td>
+                            <td>{{ member.loan_amount|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>   
+        </div>
+    </div>
+</div>
+{% endblock %}

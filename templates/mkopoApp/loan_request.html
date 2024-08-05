@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row mt-5">
+        <div class="col-md-3">
+            <div class="list-group" id="sidebar">
+                <a href="javascript:void(0);" class="list-group-item list-group-item-action active" id="omba-mkopo-link">Omba Mkopo</a>
+                <a href="javascript:void(0);" class="list-group-item list-group-item-action" id="malipo-mkopo-link">Malipo ya Mkopo</a>
+                <a href="javascript:void(0);" class="list-group-item list-group-item-action" id="historia-mikopo-link">Historia ya Mikopo Yangu</a>
+                <a href="javascript:void(0);" class="list-group-item list-group-item-action" id="gharama-mikopo-link">Gharama za Mikopo</a>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div id="omba-mkopo-section" class="content-section">
+                <h2 class="text-center">Omba Mkopo</h2>
+                <p class="text-center">Unaweza kuomba mkopo mpaka Tsh 10,000,000.</p>
+                <div class="col-md-6 mx-auto">
+                    <form method="post" class="mt-4" id="loan-request-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="id_amount">Amount</label>
+                            <input type="text" name="amount" class="form-control" id="id_amount">
+                        </div>
+                        <button type="submit" class="btn btn-block" style="background-color: #D6A2AD;">Submit Request</button>
+                    </form>
+                </div>
+            </div>
+            <div id="malipo-mkopo-section" class="content-section" style="display: none;">
+                <h3 class="text-center">Malipo ya Mkopo</h3>
+                <div class="table-responsive" style="max-width: 400px; margin: auto;">
+                    <table class="table mtaji-table">
+                        <thead>
+                            <tr>
+                                <th class="col-4">Mwezi</th>
+                                <th class="col-4">Kiasi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.month }}</td>
+                                    <td>{{ payment.amount }}</td>
+                                    <td>{{ payment.status }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="historia-mikopo-section" class="content-section" style="display: none;">
+                <h3 class="text-center">Historia ya Mikopo Yangu</h3>
+                <div class="table-responsive" style="max-width: 600px; margin: auto;">
+                    <table class="table mtaji-table">
+                        <thead>
+                            <tr>
+                                <th class="col-4">Tarehe</th>
+                                <th class="col-4">Kiasi</th>
+                                <th class="col-4">Hali</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                                <tr>
+                                    <td>{{ loan.date }}</td>
+                                    <td>{{ loan.amount }}</td>
+                                    <td>{{ loan.status }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="gharama-mikopo-section" class="content-section" style="display: none;">
+                <h3 class="text-center">Gharama za Mikopo</h3>
+                <div class="table-responsive" style="max-width: 600px; margin: auto;">
+                    <table class="table mtaji-table">
+                        <thead>
+                            <tr>
+                                <th class="col-6">Mkopo</th>
+                                <th class="col-6">Gharama</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for gharama in gharama_za_mikopo %}
+                                <tr>
+                                    <td>{{ gharama.mkopo }}</td>
+                                    <td>{{ gharama.gharama }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ombaMkopoLink = document.getElementById('omba-mkopo-link');
+        const historiaMikopoLink = document.getElementById('historia-mikopo-link');
+        const malipoMkopoLink = document.getElementById('malipo-mkopo-link');
+        const gharamaMkopoLink = document.getElementById('gharama-mikopo-link');
+        const ombaMkopoSection = document.getElementById('omba-mkopo-section');
+        const historiaMikopoSection = document.getElementById('historia-mikopo-section');
+        const malipoMkopoSection = document.getElementById('malipo-mkopo-section');
+        const gharamaMkopoSection = document.getElementById('gharama-mikopo-section');
+
+        ombaMkopoLink.addEventListener('click', function() {
+            ombaMkopoSection.style.display = 'block';
+            historiaMikopoSection.style.display = 'none';
+            malipoMkopoSection.style.display = 'none';
+            gharamaMkopoSection.style.display = 'none';
+            ombaMkopoLink.classList.add('active');
+            historiaMikopoLink.classList.remove('active');
+            malipoMkopoLink.classList.remove('active');
+            gharamaMkopoLink.classList.remove('active');
+        });
+
+        malipoMkopoLink.addEventListener('click', function() {
+            ombaMkopoSection.style.display = 'none';
+            historiaMikopoSection.style.display = 'none';
+            malipoMkopoSection.style.display = 'block';
+            gharamaMkopoSection.style.display = 'none';
+            malipoMkopoLink.classList.add('active');
+            ombaMkopoLink.classList.remove('active');
+            historiaMikopoLink.classList.remove('active');
+            gharamaMkopoLink.classList.remove('active');
+        });
+
+        historiaMikopoLink.addEventListener('click', function() {
+            ombaMkopoSection.style.display = 'none';
+            historiaMikopoSection.style.display = 'block';
+            malipoMkopoSection.style.display = 'none';
+            gharamaMkopoSection.style.display = 'none';
+            historiaMikopoLink.classList.add('active');
+            ombaMkopoLink.classList.remove('active');
+            malipoMkopoLink.classList.remove('active');
+            gharamaMkopoLink.classList.remove('active');
+        });
+
+        gharamaMkopoLink.addEventListener('click', function() {
+            ombaMkopoSection.style.display = 'none';
+            historiaMikopoSection.style.display = 'none';
+            malipoMkopoSection.style.display = 'none';
+            gharamaMkopoSection.style.display = 'block';
+            gharamaMkopoLink.classList.add('active');
+            ombaMkopoLink.classList.remove('active');
+            historiaMikopoLink.classList.remove('active');
+            malipoMkopoLink.classList.remove('active');
+        });
+
+        // Initially display the 'Omba Mkopo' section
+        ombaMkopoSection.style.display = 'block';
+        historiaMikopoSection.style.display = 'none';
+        malipoMkopoSection.style.display = 'none';
+        gharamaMkopoSection.style.display = 'none';
+
+        // Format amount input with commas
+        const amountInput = document.getElementById('id_amount');
+        amountInput.addEventListener('input', function() {
+            let value = amountInput.value.replace(/,/g, '');
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            amountInput.value = value;
+        });
+
+        // Remove commas before form submission
+        const form = document.getElementById('loan-request-form');
+        form.addEventListener('submit', function() {
+            amountInput.value = amountInput.value.replace(/,/g, '');
+        });
+    });
+</script>
+{% endblock %}

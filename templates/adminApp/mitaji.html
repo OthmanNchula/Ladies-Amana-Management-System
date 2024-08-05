@@ -1,0 +1,67 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-1">
+    <div class="row mb-4">
+        <!-- Card for Total Mtaji for all years -->
+        <div class="col-md-6">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Jumla ya mtaji kwa Miaka Yote</h5>
+                    <p class="card-text">{{ total_mtaji|floatformat:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Total Mtaji for the selected year -->
+        <div class="col-md-6">
+            <div class="card text-center shadow h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">Jumla ya mtaji kwa Mwaka {{ selected_year }}</h5>
+                    <p class="card-text">{{ total_mtaji_year|floatformat:0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- List of years for navigation -->
+        <div class="col-md-3">
+            <div class="list-group">
+                {% for year in years %}
+                    <a href="?year={{ year }}" class="list-group-item list-group-item-action {% if year == selected_year %}active{% endif %}">
+                        {{ year }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Display Mtaji for the selected year -->
+        <div class="col-md-9">
+            <h2 class="text-center">Mtaji wa Kila Mwaka - {{ selected_year }}</h2>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Kiasi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in members_mtaji %}
+                            <tr>
+                                <td>{{ member.username }}</td>
+                                <td>{{ member.amount|floatformat:0 }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td style="font-weight: bold;">TOTAL</td>
+                            <td>{{ total_mtaji_year|floatformat:0 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
