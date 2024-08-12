@@ -30,4 +30,14 @@ urlpatterns = [
     
     #mchango
     path('michango/', views.michango_view, name='michango'),
+    
+    # verification urls
+    path('verification/', views.verification, name='verification'),
+    path('approve-change/<int:change_id>/', views.approve_change, name='approve_change'),
+    path('reject-change/<int:change_id>/', views.reject_change, name='reject_change'),
+    path('verified-actions/', views.verified_actions, name='verified_actions'),
+    
+    # mengineyo urls
+    path('mengineyo/', views.mengineyo, name='mengineyo'),
+    
 ]

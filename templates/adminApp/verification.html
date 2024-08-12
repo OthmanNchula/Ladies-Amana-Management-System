@@ -1,0 +1,16 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Pending Changes for Verification</h2>
+    <ul class="list-group">
+        {% for change in pending_changes %}
+        <li class="list-group-item">
+            <strong>{{ change.table_name }}:</strong> {{ change.action }} <br>
+            <pre>{{ change.data }}</pre>
+            <a href="{% url 'admin_App:approve_change' change.id %}" class="btn btn-success">Approve</a>
+            <a href="{% url 'admin_App:reject_change' change.id %}" class="btn btn-danger">Reject</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

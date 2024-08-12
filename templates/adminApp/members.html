@@ -24,7 +24,7 @@
                         <td>{{ user.email }}</td>
                         <td>{{ user.profile.phone_number }}</td>
                         <td>
-                            <a href="{% url 'admin_App:manage_user' user.id %}" class="btn btn-sm" style="background-color: #D6A2AD">Manage</a>
+                            <a href="{% url 'admin_App:manage_user' user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage</a>
                         </td>
                     </tr>
                     {% endfor %}

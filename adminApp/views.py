@@ -11,6 +11,11 @@ from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from django.http import JsonResponse
 from django.db.models import Sum, Case, When
+from django.db.models import Sum, Case, When, Value, DecimalField
+from django.contrib.auth import get_user_model
+from adminApp.models import PendingChanges, ActivityLog
+import logging
+
 
 def admin_login(request):
     if request.method == 'POST':
@@ -30,7 +35,7 @@ def admin_dashboard(request):
     return render(request, 'adminApp/dashboard.html', context)
 
 def get_dashboard_context():
-    total_members = User.objects.count()
+    total_members = User.objects.filter(is_staff=False, is_superuser=False).count()
     total_mtaji = Mtaji.objects.aggregate(Sum('amount'))['amount__sum'] or 0
     total_michango = Michango.objects.aggregate(Sum('amount'))['amount__sum'] or 0
     total_swadaqa = Swadaqa.objects.aggregate(Sum('amount'))['amount__sum'] or 0
@@ -78,57 +83,66 @@ def members(request):
 @login_required(login_url='/account/login/')
 def manage_user(request, user_id):
     user = get_object_or_404(User, id=user_id)
+    
+    # Fetch data relevant to the user
     loans = Loan.objects.filter(user=user)
     mtaji = Mtaji.objects.filter(user=user)
     michango = Michango.objects.filter(user=user)
     swadaqa = Swadaqa.objects.filter(user=user)
-    
+
     context = {
         'user': user,
         'loans': loans,
         'mtaji': mtaji,
         'michango': michango,
         'swadaqa': swadaqa,
-        'show_back_button': True
+        'show_back_button': True,  # This can be toggled if you want to include a back button
     }
+    # Render the manage_dashboard.html within the admin_base.html layout
     return render(request, 'adminApp/manage_dashboard.html', context)
 
 
 # Mtaji
-@login_required
+logger = logging.getLogger(__name__)
+@login_required(login_url='/adminApp/login/')
 def manage_mtaji(request, user_id):
     user = get_object_or_404(User, id=user_id)
     current_year = datetime.now().year
     years = list(range(2018, current_year + 1))
-    
+
     if request.method == 'POST':
         for year in years:
-            amount_str = request.POST.get(f'amount_{year}')
-            if amount_str:
+            amount_key = f"amount_{year}"
+            if amount_key in request.POST:
                 try:
-                    # Remove commas and convert to integer
-                    amount = int(amount_str.replace(',', ''))
+                    amount = int(request.POST.get(amount_key, 0))
+                except ValueError:
+                    amount = 0
+
+                try:
+                    # Fetch or create the Mtaji object
                     mtaji, created = Mtaji.objects.get_or_create(user=user, year=year)
                     mtaji.amount = amount
                     mtaji.save()
-                except ValueError:
-                    messages.error(request, f'Invalid amount for year {year}. Please enter a valid number.')
-                    return redirect('admin_App:manage_mtaji', user_id=user_id)
-        
-        messages.success(request, 'Mtaji updated successfully')
-        return redirect('admin_App:manage_mtaji', user_id=user_id)
 
-    mtaji_data = Mtaji.objects.filter(user=user)
-    data_by_year = {mtaji.year: mtaji.amount for mtaji in mtaji_data}
+                    # Log the action
+                    if created:
+                        logger.info(f"Created new Mtaji for user {user.username} for year {year}.")
+                    else:
+                        logger.info(f"Updated Mtaji for user {user.username} for year {year}.")
+                
+                except Exception as e:
+                    # Log the error for debugging
+                    logger.error(f"Error occurred while handling Mtaji for user {user.username} for year {year}: {str(e)}")
+                    # Consider adding additional error handling here
 
     return render(request, 'adminApp/manage_mtaji.html', {
         'user': user,
-        'years': years,
-        'data_by_year': data_by_year,
         'current_year': current_year,
-        'show_back_button': True,
+        'years': years,
     })
 
+@login_required
 def mtaji_data(request, user_id, year):
     user = get_object_or_404(User, id=user_id)
     try:
@@ -140,8 +154,13 @@ def mtaji_data(request, user_id, year):
     data = {
         'year': year,
         'amount': amount,
-        'total': amount
+        'total': amount  # This should also be a simple number
     }
+    
+    # Check for non-serializable types before returning
+    if not isinstance(data['amount'], (int, float)) or not isinstance(data['total'], (int, float)):
+        return JsonResponse({'error': 'Non-serializable data encountered'}, status=400)
+
     return JsonResponse(data)
 
 @login_required(login_url='/account/login/')
@@ -214,8 +233,6 @@ def michango_view(request):
 
 
 #loans
-from django.db.models import Sum, Case, When, Value, DecimalField
-
 @login_required
 def members_loans(request):
     # Fetch all members and their loan status
@@ -283,3 +300,65 @@ def reject_loan(request, loan_id):
     loan.save()
     messages.success(request, 'Loan rejected successfully.')
     return redirect('admin_App:loan_requests')
+
+
+# verification for admin1
+@login_required(login_url='/account/login/')
+def verification(request):
+    if request.user.username == 'admin1':
+        if request.method == 'POST':
+            password = request.POST.get('password')
+            primary_admin = authenticate(username=request.user.username, password=password)
+            if primary_admin is not None:
+                pending_changes = PendingChanges.objects.filter(is_approved=False)
+                return render(request, 'adminApp/verification.html', {'pending_changes': pending_changes})
+            else:
+                messages.error(request, 'Invalid password.')
+                return redirect('admin_App:verification')
+        return render(request, 'adminApp/password_prompt.html')
+    else:
+        messages.error(request, 'Access denied.')
+        return redirect('admin_App:admin_dashboard')
+
+@login_required(login_url='/account/login/')
+def approve_change(request, change_id):
+    if request.user.username == 'admin1':
+        pending_change = get_object_or_404(PendingChanges, id=change_id)
+        pending_change.is_approved = True
+        pending_change.approved_by = request.user
+        pending_change.save()
+
+        ActivityLog.objects.create(
+            admin=request.user,
+            action=f"Approved {pending_change.action}",
+            details=f"Approved changes to {pending_change.table_name}"
+        )
+
+        messages.success(request, 'Change approved successfully.')
+    return redirect('admin_App:verification')
+
+@login_required(login_url='/account/login/')
+def reject_change(request, change_id):
+    if request.user.username == 'admin1':
+        pending_change = get_object_or_404(PendingChanges, id=change_id)
+        pending_change.delete()
+
+        ActivityLog.objects.create(
+            admin=request.user,
+            action=f"Rejected {pending_change.action}",
+            details=f"Rejected changes to {pending_change.table_name}"
+        )
+
+        messages.success(request, 'Change rejected successfully.')
+    return redirect('admin_App:verification')
+
+@login_required(login_url='/account/login/')
+def verified_actions(request):
+    verified_actions = ActivityLog.objects.all().order_by('-timestamp')
+    return render(request, 'adminApp/verified_actions.html', {'verified_actions': verified_actions})
+
+# mengineyo
+@login_required(login_url='/account/login/')
+def mengineyo(request):
+    
+    return render(request, 'adminApp/mengineyo.html')
