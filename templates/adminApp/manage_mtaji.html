@@ -1,9 +1,8 @@
-<!-- adminApp/manage_mtaji.html -->
 {% extends 'admin_base.html' %}
 {% load static %}
 {% block content %}
 <div class="container mt-3">
-    <h1 class="text-center">Manage {{ user.username }}'s Mtaji</h1>
+    <h1 class="text-center">Manage {{ managed_user.username }}'s Mtaji</h1>
     <div class="row mt-3">
         <div class="col-md-3">
             <div class="list-group" id="year-list">
@@ -54,7 +53,7 @@
                 this.classList.add('active');
                 const selectedYear = this.getAttribute('data-year');
                 document.getElementById('selected-year').innerText = selectedYear;
-                fetch(`/adminApp/manage-user/{{ user.id }}/mtaji/data/${selectedYear}/`)
+                fetch(`/adminApp/manage-user/{{ managed_user.id }}/mtaji/data/${selectedYear}/`)
                     .then(response => response.json())
                     .then(data => {
                         const amountValue = data.amount ? data.amount.toLocaleString() : '0';

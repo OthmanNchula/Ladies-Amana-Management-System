@@ -13,6 +13,8 @@ urlpatterns = [
     path('manage-user/<int:user_id>/', views.manage_user, name='manage_user'),
     path('manage-user/<int:user_id>/mtaji/', views.manage_mtaji, name='manage_mtaji'),
     path('manage-user/<int:user_id>/mtaji/data/<int:year>/', views.mtaji_data, name='mtaji_data'),
+    path('manage-user/<int:user_id>/mchango/', views.manage_mchango, name='manage_mchango'),
+
    
     
     #loans

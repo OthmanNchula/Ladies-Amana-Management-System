@@ -14,6 +14,7 @@ from django.db.models import Sum, Case, When
 from django.db.models import Sum, Case, When, Value, DecimalField
 from django.contrib.auth import get_user_model
 from adminApp.models import PendingChanges, ActivityLog
+from django.http import HttpResponse
 import logging
 
 
@@ -82,66 +83,58 @@ def members(request):
 
 @login_required(login_url='/account/login/')
 def manage_user(request, user_id):
+    # Fetch the user by ID
     user = get_object_or_404(User, id=user_id)
-    
-    # Fetch data relevant to the user
+
+    # Start with the 'loans' data
     loans = Loan.objects.filter(user=user)
     mtaji = Mtaji.objects.filter(user=user)
     michango = Michango.objects.filter(user=user)
     swadaqa = Swadaqa.objects.filter(user=user)
-
+    
+    # Check if it works fine with just loans
     context = {
-        'user': user,
+        'managed_user': user,
         'loans': loans,
         'mtaji': mtaji,
         'michango': michango,
         'swadaqa': swadaqa,
-        'show_back_button': True,  # This can be toggled if you want to include a back button
+        
+        'show_back_button': True,
     }
-    # Render the manage_dashboard.html within the admin_base.html layout
     return render(request, 'adminApp/manage_dashboard.html', context)
 
-
 # Mtaji
-logger = logging.getLogger(__name__)
-@login_required(login_url='/adminApp/login/')
+@login_required(login_url='/account/login/')
 def manage_mtaji(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    current_year = datetime.now().year
-    years = list(range(2018, current_year + 1))
+    
+    # Assuming you have a Mtaji model that tracks contributions by year
+    mtaji_data = Mtaji.objects.filter(user=user)
 
+    # Create a list of years, you may customize this part
+    years = [year for year in range(2018, 2025)]
+    current_year = years[-1]  # Default to the most recent year
+
+    # If a POST request is made, handle the form submission
     if request.method == 'POST':
-        for year in years:
-            amount_key = f"amount_{year}"
-            if amount_key in request.POST:
-                try:
-                    amount = int(request.POST.get(amount_key, 0))
-                except ValueError:
-                    amount = 0
+        year = request.POST.get('amount_{}'.format(current_year))
+        amount = request.POST.get('amount_{}'.format(current_year), 0)
+        
+        # Update or create Mtaji record for the current year
+        mtaji_record, created = Mtaji.objects.update_or_create(
+            user=user, year=current_year,
+            defaults={'amount': amount}
+        )
 
-                try:
-                    # Fetch or create the Mtaji object
-                    mtaji, created = Mtaji.objects.get_or_create(user=user, year=year)
-                    mtaji.amount = amount
-                    mtaji.save()
-
-                    # Log the action
-                    if created:
-                        logger.info(f"Created new Mtaji for user {user.username} for year {year}.")
-                    else:
-                        logger.info(f"Updated Mtaji for user {user.username} for year {year}.")
-                
-                except Exception as e:
-                    # Log the error for debugging
-                    logger.error(f"Error occurred while handling Mtaji for user {user.username} for year {year}: {str(e)}")
-                    # Consider adding additional error handling here
-
-    return render(request, 'adminApp/manage_mtaji.html', {
-        'user': user,
-        'current_year': current_year,
+    context = {
+        'managed_user': user,
         'years': years,
-    })
-
+        'current_year': current_year,
+        'mtaji_data': mtaji_data,
+        'show_back_button': True,
+    }
+    return render(request, 'adminApp/manage_mtaji.html', context)
 @login_required
 def mtaji_data(request, user_id, year):
     user = get_object_or_404(User, id=user_id)
@@ -156,12 +149,47 @@ def mtaji_data(request, user_id, year):
         'amount': amount,
         'total': amount  # This should also be a simple number
     }
-    
     # Check for non-serializable types before returning
-    if not isinstance(data['amount'], (int, float)) or not isinstance(data['total'], (int, float)):
-        return JsonResponse({'error': 'Non-serializable data encountered'}, status=400)
+    # if not isinstance(data['amount'], (int, float)) or not isinstance(data['total'], (int, float)):
+    #     return JsonResponse({'error': 'Non-serializable data encountered'}, status=400)
+    # return JsonResponse(data)
+    
+@login_required(login_url='/account/login/')
+def manage_mchango(request, user_id):
+    user = get_object_or_404(User, id=user_id)
 
-    return JsonResponse(data)
+    # List of years (You can modify this list as needed)
+    current_year = datetime.now().year
+    years = [year for year in range(current_year - 5, current_year + 1)]  # Example: last 5 years + current year
+    selected_year = int(request.GET.get('year', current_year))
+
+    # Fetch Michango data for this user and selected year
+    michango_data = Michango.objects.filter(user=user, year=selected_year)
+
+    # Create a dictionary mapping months to their amounts
+    michango_dict = {michango.month: michango.amount for michango in michango_data}
+
+    # Handle POST request to save michango
+    if request.method == 'POST':
+        for month in range(1, 13):
+            month_name = datetime(1900, month, 1).strftime('%B')
+            amount = request.POST.get(f'amount_{month_name}', 0)
+            
+            # Update or create Michango record for the current month and year
+            michango_record, created = Michango.objects.update_or_create(
+                user=user, month=month_name, year=selected_year,
+                defaults={'amount': amount}
+            )
+
+    context = {
+        'managed_user': user,
+        'years': years,
+        'current_year': current_year,
+        'months': [datetime(1900, month, 1).strftime('%B') for month in range(1, 13)],
+        'michango_dict': michango_dict,  # Pass the dictionary to the template
+        'show_back_button': True,
+    }
+    return render(request, 'adminApp/manage_mchango.html', context)
 
 @login_required(login_url='/account/login/')
 def mitaji_view(request):
