@@ -15,3 +15,19 @@ class Loan(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.amount} - {self.status}"
 
+
+class LoanPayment(models.Model):
+    loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='payments')
+    year = models.IntegerField()
+    month = models.IntegerField(choices=[
+        (1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
+        (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
+        (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December')
+    ])
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    def __str__(self):
+        return f"Payment for {self.loan.user.username} - {self.year}/{self.month}: {self.amount}"
+
+    class Meta:
+        ordering = ['year', 'month']

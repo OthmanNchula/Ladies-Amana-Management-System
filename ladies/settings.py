@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     "adminApp",
     "loginApp",
     "mkopoApp",
@@ -35,6 +36,7 @@ INSTALLED_APPS = [
     "swadaqaApp",
     "crispy_forms",
     "crispy_bootstrap4",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [

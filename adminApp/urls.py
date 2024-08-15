@@ -14,6 +14,13 @@ urlpatterns = [
     path('manage-user/<int:user_id>/mtaji/', views.manage_mtaji, name='manage_mtaji'),
     path('manage-user/<int:user_id>/mtaji/data/<int:year>/', views.mtaji_data, name='mtaji_data'),
     path('manage-user/<int:user_id>/mchango/', views.manage_mchango, name='manage_mchango'),
+    path('manage-user/<int:user_id>/mchango/save/', views.save_mchango, name='save_mchango'),
+    path('manage-user/<int:user_id>/swadaqa/', views.manage_swadaqa, name='manage_swadaqa'),
+    path('manage-user/<int:user_id>/swadaqa/data/<int:year>/', views.swadaqa_data, name='swadaqa_data'),
+    path('manage-user/<int:user_id>/mkopo/', views.manage_mkopo, name='manage_mkopo'),
+    path('manage-user/<int:user_id>/mkopo/process-request/', views.process_loan_request, name='process_loan_request'),
+    path('manage-user/<int:user_id>/mkopo/payments/', views.loan_payments_view, name='loan_payments'),
+
 
    
     

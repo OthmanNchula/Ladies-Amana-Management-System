@@ -1,9 +1,10 @@
 {% extends 'admin_base.html' %}
-
+{% load static %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="text-center">Michango ya Kila Mwezi - <span id="selected-year">{{ current_year }}</span></h1>
-    <div class="row mt-5">
+{% load michango_filters %}
+<div class="container">
+    <h1 class="text-center">Manage {{ managed_user.username }}'s Monthly Contributions - <span id="selected-year">{{ current_year }}</span></h1>
+    <div class="row">
         <div class="col-md-3">
             <div class="list-group" id="year-list">
                 {% for year in years %}
@@ -11,23 +12,23 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="col-md-9">
-            <form id="michango-form" method="post">
+        <div class="col-md-9" style="margin-left: -150px;">
+            <form method="post" action="{% url 'admin_App:save_mchango' managed_user.id %}?year={{ current_year }}">
                 {% csrf_token %}
-                <div class="table-responsive" style="max-width: 400px; margin: auto;">
+                <div class="table-responsive mx-auto" style="max-width: 400px;">
                     <table class="table mtaji-table">
                         <thead>
                             <tr>
-                                <th class="col-6">Mwezi</th>
-                                <th class="col-6">Kiasi</th>
+                                <th style="width: 50%;"><span id="display-year">{{ current_year }}</span></th>
+                                <th style="width: 50%;">Kiasi</th>
                             </tr>
                         </thead>
                         <tbody id="contributions-body">
-                            {% for month in months %}
+                            {% for month, amount in months_with_data %}
                                 <tr>
                                     <td>{{ month }}</td>
                                     <td>
-                                        <input type="text" name="amount_{{ month }}" id="amount-{{ month }}" class="form-control" value="{{ michango_dict.get:month:'0' }}">
+                                        <input type="text" name="amount_{{ month }}" id="amount-{{ forloop.counter }}" class="form-control" value="{{ amount }}">
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -37,28 +38,19 @@
                             </tr>
                         </tbody>
                     </table>
-                    <button type="submit" class="btn btn-block" style="background-color: #D6A2AD">Save Contributions</button>
+                    <button type="submit" class="btn btn-block" style="background-color: #D6A2AD;">Save Contributions</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const yearLinks = document.querySelectorAll('.year-link');
         const selectedYearElement = document.getElementById('selected-year');
+        const displayYearElement = document.getElementById('display-year');
         const totalAmountElement = document.getElementById('total-amount');
-        const formElement = document.getElementById('michango-form');
-
-        function updateTotalAmount() {
-            let totalAmount = 0;
-            const amountInputs = document.querySelectorAll('[id^="amount-"]');
-            amountInputs.forEach(input => {
-                const value = parseFloat(input.value.replace(/,/g, '')) || 0;
-                totalAmount += value;
-            });
-            totalAmountElement.innerText = totalAmount.toLocaleString();
-        }
 
         yearLinks.forEach(link => {
             link.addEventListener('click', function() {
@@ -67,22 +59,22 @@
 
                 const selectedYear = this.getAttribute('data-year');
                 selectedYearElement.innerText = selectedYear;
+                displayYearElement.innerText = selectedYear;
 
-                fetch(`/michango/data/${selectedYear}/`)
+                fetch(`/adminApp/manage-user/{{ managed_user.id }}/mchango/data/${selectedYear}/`)
                     .then(response => response.json())
                     .then(data => {
+                        let totalAmount = 0;
                         for (let month = 1; month <= 12; month++) {
                             const amountElement = document.getElementById(`amount-${month}`);
                             const amount = data[month] ? data[month] : '0';
                             amountElement.value = amount;
+                            totalAmount += parseFloat(amount.replace(/,/g, '')) || 0;
                         }
-                        updateTotalAmount();
+                        totalAmountElement.innerText = totalAmount.toLocaleString();
                     });
             });
         });
-
-        // Update total amount when an input value changes
-        formElement.addEventListener('input', updateTotalAmount);
 
         // Trigger click for the current year to display initial data
         document.querySelector(`.year-link[data-year="{{ current_year }}"]`).classList.add('active');

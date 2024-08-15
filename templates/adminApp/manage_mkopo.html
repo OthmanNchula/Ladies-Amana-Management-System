@@ -1,0 +1,137 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% load humanize %}
+{% block content %}
+<div class="container mt-3">
+    <h3 class="text-center">Manage {{ managed_user.username }}'s Loan</h3>
+
+    <!-- Navigation Links -->
+    <div class="nav nav-tabs justify-content-center" style="background-color: #D6A2AD;">
+        <a class="nav-link active text-black mx-3" href="javascript:void(0);" onclick="showSection('maombi')" id="maombi-tab">Maombi ya Mkopo</a>
+        <a class="nav-link text-black mx-3" href="javascript:void(0);" onclick="showSection('historia')" id="historia-tab">Historia ya Mikopo</a>
+        <a class="nav-link text-black mx-3" href="javascript:void(0);" onclick="showSection('malipo')" id="malipo-tab">Malipo ya Mkopo</a>
+    </div>
+    
+    <!-- Loan Request Status Section -->
+    <div id="maombi" class="mt-4">
+        <div class="d-flex justify-content-center mb-3">
+            <div class="card mr-3" style="width: 18rem;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Loan Status: {{ loan_status }}</h5>
+                </div>
+            </div>
+            <div class="card" style="width: 20rem;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Loan Limit: Tsh {{ loan_limit|intcomma }}/=</h5>
+                </div>
+            </div>
+        </div>
+        <div class="text-center">
+            {% if has_request %}
+                <p>Pending loan request: Tsh {{ loan_request.amount|intcomma }}/=</p>
+                <form method="post" action="{% url 'admin_App:process_loan_request' managed_user.id %}">
+                    {% csrf_token %}
+                    <button type="submit" name="decision" value="accept" class="btn btn-success">Accept</button>
+                    <button type="submit" name="decision" value="reject" class="btn btn-danger">Reject</button>
+                </form>
+            {% else %}
+                <p>No pending loan requests.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Loan History Section -->
+    <div id="historia" class="mt-4" style="display: none;">
+        <h4 class="text-center">Loan History</h4>
+        <ul class="list-group">
+            {% for loan in loan_history %}
+                <li class="list-group-item">Loan Amount: Tsh {{ loan.amount|intcomma }}/= - Status: {{ loan.status }}</li>
+            {% endfor %}
+        </ul>
+        {% if loan_history|length == 0 %}
+            <p class="text-center">No loan history available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Loan Payments Section -->
+    <div id="malipo" class="mt-4" style="display: none;">
+        <h4 class="text-center">Malipo ya Mkopo</h4>
+        {% if current_loan %}
+            <div class="table-responsive mx-auto" style="max-width: 600px;">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Mwaka</th>
+                            <th>Mwezi</th>
+                            <th>Kiasi cha Malipo (Tsh)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in loan_payments %}
+                            <tr>
+                                <td>{{ payment.year }}</td>
+                                <td>{{ payment.month }}</td>
+                                <td>{{ payment.amount|intcomma }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-4">
+                <form method="post" action="{% url 'admin_App:record_payment' managed_user.id %}">
+                    {% csrf_token %}
+                    <input type="number" name="year" placeholder="Year" class="form-control mb-2" required>
+                    <input type="text" name="month" placeholder="Month" class="form-control mb-2" required>
+                    <input type="number" name="amount" placeholder="Payment Amount" class="form-control mb-2" required>
+                    <button type="submit" class="btn btn-success">Record Payment</button>
+                </form>
+            </div>
+        {% else %}
+            <p class="text-center">No active loan available for payments.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function showSection(section) {
+        // Hide all sections
+        document.getElementById('maombi').style.display = section === 'maombi' ? 'block' : 'none';
+        document.getElementById('historia').style.display = section === 'historia' ? 'block' : 'none';
+        document.getElementById('malipo').style.display = section === 'malipo' ? 'block' : 'none';
+
+        // Remove active class from all tabs
+        document.getElementById('maombi-tab').classList.remove('active', 'bg-white');
+        document.getElementById('historia-tab').classList.remove('active', 'bg-white');
+        document.getElementById('malipo-tab').classList.remove('active', 'bg-white');
+
+        // Add active class to the selected tab
+        document.getElementById(section + '-tab').classList.add('active', 'bg-white');
+    }
+</script>
+
+<style>
+    .nav-link.active {
+        background-color: white !important;
+        color: black !important;
+        border-radius: 4px;
+    }
+
+    .nav-link {
+        color: black !important;
+    }
+
+    .nav-link:hover {
+        background-color: white !important;
+        color: black !important;
+    }
+
+    .d-none {
+        display: none !important;
+    }
+
+    .mx-3 {
+        margin-left: 1rem !important;
+        margin-right: 1rem !important;
+    }
+</style>
+{% endblock %}

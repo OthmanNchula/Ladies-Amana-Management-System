@@ -27,7 +27,7 @@
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <h5 class="card-title">Swadaqa</h5>
                     <p class="card-text">Manage swadaqa for {{ managed_user.username }}.</p>
-                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Swadaqa</a>
+                    <a href="{% url 'admin_App:manage_swadaqa' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Swadaqa</a>
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <h5 class="card-title">Mkopo</h5>
                     <p class="card-text">Manage loans for {{ managed_user.username }}.</p>
-                    <a href="#" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Mkopo</a>
+                    <a href="{% url 'admin_App:manage_mkopo' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Mkopo</a>
                 </div>
             </div>
         </div>
