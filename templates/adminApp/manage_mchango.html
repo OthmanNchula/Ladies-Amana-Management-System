@@ -8,7 +8,7 @@
         <div class="col-md-3">
             <div class="list-group" id="year-list">
                 {% for year in years %}
-                    <a href="javascript:void(0);" class="list-group-item list-group-item-action year-link" data-year="{{ year }}">{{ year }}</a>
+                    <a href="?year={{ year }}" class="list-group-item list-group-item-action year-link {% if year == current_year %}active{% endif %}" data-year="{{ year }}">{{ year }}</a>
                 {% endfor %}
             </div>
         </div>
@@ -38,7 +38,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <button type="submit" class="btn btn-block" style="background-color: #D6A2AD;">Save Contributions</button>
+                    <button type="submit" class="btn btn-block" style="background-color: #D6A2AD; display: none;" id="save-button">Save Contributions</button>
                 </div>
             </form>
         </div>
@@ -47,38 +47,45 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const yearLinks = document.querySelectorAll('.year-link');
-        const selectedYearElement = document.getElementById('selected-year');
-        const displayYearElement = document.getElementById('display-year');
+        const amountInputs = document.querySelectorAll('[id^="amount-"]');
         const totalAmountElement = document.getElementById('total-amount');
+        const saveButton = document.getElementById('save-button');
+        let originalValues = [];
 
-        yearLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                yearLinks.forEach(link => link.classList.remove('active'));
-                this.classList.add('active');
-
-                const selectedYear = this.getAttribute('data-year');
-                selectedYearElement.innerText = selectedYear;
-                displayYearElement.innerText = selectedYear;
-
-                fetch(`/adminApp/manage-user/{{ managed_user.id }}/mchango/data/${selectedYear}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        let totalAmount = 0;
-                        for (let month = 1; month <= 12; month++) {
-                            const amountElement = document.getElementById(`amount-${month}`);
-                            const amount = data[month] ? data[month] : '0';
-                            amountElement.value = amount;
-                            totalAmount += parseFloat(amount.replace(/,/g, '')) || 0;
-                        }
-                        totalAmountElement.innerText = totalAmount.toLocaleString();
-                    });
-            });
+        // Store original values
+        amountInputs.forEach(input => {
+            originalValues.push(input.value);
         });
 
-        // Trigger click for the current year to display initial data
-        document.querySelector(`.year-link[data-year="{{ current_year }}"]`).classList.add('active');
-        document.querySelector(`.year-link[data-year="{{ current_year }}"]`).click();
+        // Function to check if the input is modified or not empty
+        function checkInputs() {
+            let totalAmount = 0;
+            let isModified = false;
+
+            amountInputs.forEach((input, index) => {
+                const amountValue = parseFloat(input.value.replace(/,/g, '')) || 0;
+                totalAmount += amountValue;
+
+                if (input.value !== originalValues[index]) {
+                    isModified = true;
+                }
+            });
+
+            totalAmountElement.innerText = totalAmount.toLocaleString();
+
+            if (isModified) {
+                saveButton.style.display = 'block';
+            } else {
+                saveButton.style.display = 'none';
+            }
+        }
+
+        amountInputs.forEach(input => {
+            input.addEventListener('input', checkInputs);
+        });
+
+        // Initial check to determine the state of the save button
+        checkInputs();
     });
 </script>
 {% endblock %}

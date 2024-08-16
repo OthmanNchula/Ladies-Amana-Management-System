@@ -99,42 +99,68 @@ def manage_user(request, user_id):
         'mtaji': mtaji,
         'michango': michango,
         'swadaqa': swadaqa,
-        
         'show_back_button': True,
     }
     return render(request, 'adminApp/manage_dashboard.html', context)
+
+@login_required(login_url='/account/login/')
+def view_member_details(request, user_id):
+    member = get_object_or_404(User, id=user_id)
+    profile = member.profile  # Assuming you have a Profile model linked to User
+
+    context = {
+        'member': member,
+        'profile': profile,
+        'show_back_button': True,
+    }
+    return render(request, 'adminApp/view_member_details.html', context)
+
+@login_required(login_url='/account/login/')
+def delete_member(request, user_id):
+    member = get_object_or_404(User, id=user_id)
+    member.delete()
+    messages.success(request, 'Member deleted successfully.')
+    return render(request, 'adminApp/members.html', {'users': members, 'show_back_button': False})
 
 # Mtaji
 @login_required(login_url='/account/login/')
 def manage_mtaji(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
-    # Assuming you have a Mtaji model that tracks contributions by year
-    mtaji_data = Mtaji.objects.filter(user=user)
+    # List of years
+    years = [year for year in range(2018, timezone.now().year + 1)]
+    current_year = timezone.now().year
 
-    # Create a list of years, you may customize this part
-    years = [year for year in range(2018, 2025)]
-    current_year = years[-1]  # Default to the most recent year
+    selected_year = int(request.GET.get('year', current_year))  # Use the selected year from the request
 
-    # If a POST request is made, handle the form submission
+    # Retrieve the Mtaji for the selected year
+    try:
+        mtaji_record = Mtaji.objects.get(user=user, year=selected_year)
+        current_amount = mtaji_record.amount
+    except Mtaji.DoesNotExist:
+        current_amount = 0
+
     if request.method == 'POST':
-        year = request.POST.get('amount_{}'.format(current_year))
-        amount = request.POST.get('amount_{}'.format(current_year), 0)
-        
-        # Update or create Mtaji record for the current year
-        mtaji_record, created = Mtaji.objects.update_or_create(
-            user=user, year=current_year,
-            defaults={'amount': amount}
-        )
-
+        amount = request.POST.get('amount_{}'.format(selected_year))
+        if amount:
+            Mtaji.objects.update_or_create(
+                user=user, 
+                year=selected_year,
+                defaults={'amount': amount}
+            )
+        return redirect('admin_App:manage_mtaji', user_id=user.id)  # Reload the page with the selected year
+    
     context = {
         'managed_user': user,
         'years': years,
-        'current_year': current_year,
-        'mtaji_data': mtaji_data,
+        'current_year': selected_year,
+        'current_amount': current_amount,
         'show_back_button': True,
     }
+    
     return render(request, 'adminApp/manage_mtaji.html', context)
+
+
 @login_required
 def mtaji_data(request, user_id, year):
     user = get_object_or_404(User, id=user_id)
@@ -147,12 +173,9 @@ def mtaji_data(request, user_id, year):
     data = {
         'year': year,
         'amount': amount,
-        'total': amount  # This should also be a simple number
+        'total': amount
     }
-    # Check for non-serializable types before returning
-    # if not isinstance(data['amount'], (int, float)) or not isinstance(data['total'], (int, float)):
-    #     return JsonResponse({'error': 'Non-serializable data encountered'}, status=400)
-    # return JsonResponse(data)
+    return JsonResponse(data)
     
 @login_required(login_url='/account/login/')
 def manage_mchango(request, user_id):
@@ -204,29 +227,35 @@ def save_mchango(request, user_id):
 def manage_swadaqa(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
-    # Fetch Swadaqa data for the user
-    swadaqa_data = Swadaqa.objects.filter(user=user)
-
     # Create a list of years
     years = [year for year in range(2018, timezone.now().year + 1)]
-    current_year = years[-1]  # Default to the most recent year
+    current_year = timezone.now().year
+    
+    selected_year = int(request.GET.get('year', current_year)) # Use the selected year from the request
+    
+    # Retrieve the Swadaqa for the selected year.
+    try:
+        swadaqa_record = Swadaqa.objects.get(user=user, year=selected_year)
+        current_amount = swadaqa_record.amount
+    except Swadaqa.DoesNotExist:
+        current_amount = 0
 
     # Handle form submission
     if request.method == 'POST':
-        year = request.POST.get('amount_{}'.format(current_year))
-        amount = request.POST.get('amount_{}'.format(current_year), 0)
-        
-        # Update or create Swadaqa record for the current year
-        swadaqa_record, created = Swadaqa.objects.update_or_create(
-            user=user, year=current_year,
-            defaults={'amount': amount}
-        )
+        amount = request.POST.get('amount_{}'.format(current_year))
+        if amount:
+            Swadaqa.objects.update_or_create(
+                user=user,
+                year=selected_year,
+                defaults={'amount': amount}
+            )
+            return redirect('admin_App:manage_swadaqa', user_id=user_id)
 
     context = {
         'managed_user': user,
         'years': years,
         'current_year': current_year,
-        'swadaqa_data': swadaqa_data,
+        'current_amount': current_amount,
         'show_back_button': True,
     }
     return render(request, 'adminApp/manage_swadaqa.html', context)
@@ -424,7 +453,34 @@ def michango_view(request):
 
     return render(request, 'adminApp/michango.html', context)
 
-
+@login_required(login_url='/account/login')
+def swadaqa_view(request):
+    current_year = datetime.now().year
+    years = list(range(2018,current_year + 1))
+    selected_year = int(request.GET.get('year', current_year))
+    
+    total_swadaqa = Swadaqa.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+    total_swadaqa_year = Swadaqa.objects.filter(year=selected_year).aggregate(Sum('amount'))['amount__sum'] or 0
+    members = User.objects.filter(is_staff=False, is_superuser=False)
+    
+    members_swadaqa = []
+    for member in members:
+        swadaqa = Swadaqa.objects.filter(user=member, year=selected_year).first()
+        amount = swadaqa.amount if swadaqa else 0
+        members_swadaqa.append({
+            'username': member.username,
+            'amount': amount
+        })
+        
+    context = {
+        'total_swadaqa':total_swadaqa,
+        'total_swadaqa_year': total_swadaqa_year,
+        'years': years,
+        'selected_year': selected_year,
+        'members_swadaqa': members_swadaqa
+    }
+    
+    return render(request, 'adminApp/swadaqas.html', context)
 
 #loans
 @login_required(login_url='/account/login/')
@@ -508,7 +564,7 @@ def reject_loan(request, loan_id):
 
 
 # verification for admin1
-@login_required(login_url='/account/login/')
+login_required(login_url='/account/login/')
 def verification(request):
     if request.user.username == 'admin1':
         if request.method == 'POST':
@@ -561,6 +617,8 @@ def reject_change(request, change_id):
 def verified_actions(request):
     verified_actions = ActivityLog.objects.all().order_by('-timestamp')
     return render(request, 'adminApp/verified_actions.html', {'verified_actions': verified_actions})
+
+
 
 # mengineyo
 @login_required(login_url='/account/login/')

@@ -11,6 +11,8 @@ urlpatterns = [
     #members
     path('members/', views.members, name='members'),
     path('manage-user/<int:user_id>/', views.manage_user, name='manage_user'),
+    path('manage-user/<int:user_id>/view-details/', views.view_member_details, name='view_member_details'),
+    path('manage-user/<int:user_id>/delete/', views.delete_member, name='delete_member_account'),
     path('manage-user/<int:user_id>/mtaji/', views.manage_mtaji, name='manage_mtaji'),
     path('manage-user/<int:user_id>/mtaji/data/<int:year>/', views.mtaji_data, name='mtaji_data'),
     path('manage-user/<int:user_id>/mchango/', views.manage_mchango, name='manage_mchango'),
@@ -39,6 +41,9 @@ urlpatterns = [
     
     #mchango
     path('michango/', views.michango_view, name='michango'),
+    
+    #swadaqas
+    path('swadaqas/', views.swadaqa_view, name='swadaqas'),
     
     # verification urls
     path('verification/', views.verification, name='verification'),

@@ -7,11 +7,11 @@
         <div class="col-md-3">
             <div class="list-group" id="year-list">
                 {% for year in years %}
-                    <a href="javascript:void(0);" class="list-group-item list-group-item-action year-link" data-year="{{ year }}">{{ year }}</a>
+                    <a href="?year={{ year }}" class="list-group-item list-group-item-action year-link {% if year == current_year %}active{% endif %}" data-year="{{ year }}">{{ year }}</a>
                 {% endfor %}
             </div>
         </div>
-        <div class="col-md-9" style="margin-left: -150px;">
+        <div class="col-md-9">
             <form method="post">
                 {% csrf_token %}
                 <div class="table-responsive mx-auto" style="max-width: 300px;">
@@ -24,18 +24,18 @@
                         </thead>
                         <tbody id="contributions-body">
                             <tr>
-                                <td id="selected-year">{{ current_year }}</td>
+                                <td>{{ current_year }}</td>
                                 <td>
-                                    <input type="text" name="amount_{{ current_year }}" id="amount" class="form-control" value="0" />
+                                    <input type="text" name="amount_{{ current_year }}" id="amount" class="form-control" value="{{ current_amount }}" />
                                 </td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">TOTAL</td>
-                                <td id="total-amount">0</td>
+                                <td id="total-amount">{{ current_amount }}</td>
                             </tr>
                         </tbody>
                     </table>
-                    <button type="submit" class="btn btn-block" style="background-color: #D6A2AD;">Save Mtaji</button>
+                    <button type="submit" class="btn btn-block" style="background-color: #D6A2AD; display: none;" id="save-button">Save Mtaji</button>
                 </div>
             </form>
         </div>
@@ -43,34 +43,27 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const yearLinks = document.querySelectorAll('.year-link');
         const amountInput = document.getElementById('amount');
         const totalAmount = document.getElementById('total-amount');
+        const saveButton = document.getElementById('save-button');
+        const originalAmount = amountInput.value;
 
-        yearLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                yearLinks.forEach(link => link.classList.remove('active'));
-                this.classList.add('active');
-                const selectedYear = this.getAttribute('data-year');
-                document.getElementById('selected-year').innerText = selectedYear;
-                fetch(`/adminApp/manage-user/{{ managed_user.id }}/mtaji/data/${selectedYear}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const amountValue = data.amount ? data.amount.toLocaleString() : '0';
-                        amountInput.value = amountValue;
-                        totalAmount.innerText = amountValue;
-                        amountInput.setAttribute('name', `amount_${selectedYear}`);
-                    });
-            });
-        });
-
-        document.querySelector(`.year-link[data-year="{{ current_year }}"]`).classList.add('active');
-        document.querySelector(`.year-link[data-year="{{ current_year }}"]`).click();
-
-        amountInput.addEventListener('input', function() {
-            const amountValue = parseFloat(this.value.replace(/,/g, '')) || 0;
+       // Function to check if the input is modified or not empty
+       function checkInput() {
+            const amountValue = parseFloat(amountInput.value.replace(/,/g, '')) || 0;
             totalAmount.innerText = amountValue.toLocaleString();
-        });
+
+            if (amountInput.value !== '' && amountInput.value !== originalAmount) {
+                saveButton.style.display = 'block';
+            } else {
+                saveButton.style.display = 'none';
+            }
+        }
+
+        amountInput.addEventListener('input', checkInput);
+
+        // Initial check to determine the state of the save button
+        checkInput();
     });
 </script>
 {% endblock %}

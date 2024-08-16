@@ -1,5 +1,4 @@
 {% extends 'admin_base.html' %}
-
 {% block content %}
 <div class="container mt-3">
     <h2 class="text-center">Manage {{ managed_user.username }}'s Account</h2>
@@ -39,6 +38,17 @@
                     <a href="{% url 'admin_App:manage_mkopo' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Mkopo</a>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!--buttons for viewing details and deleting account -->
+    <div class="row mt-4">
+        <div class="col-12 d-flex justify-content-end">
+            <a href="{% url 'admin_App:view_member_details' managed_user.id %}" class="btn mr-2" style="background-color: #D6A2AD;">View {{ managed_user.username }}'s Details</a>
+            <form action="{% url 'admin_App:delete_member_account' managed_user.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete {{ managed_user.username }}\'s account?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Delete {{ managed_user.username }}'s Account</button>
+            </form>
         </div>
     </div>
 </div>

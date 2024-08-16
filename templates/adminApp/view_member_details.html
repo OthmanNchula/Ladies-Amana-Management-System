@@ -1,0 +1,22 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-3">
+    <h3 class="text-center">Member Details for {{ member.username }}</h3>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Username:</strong> {{ member.username }}</p>
+            <p><strong>Email:</strong> {{ member.email }}</p>
+            <p><strong>First Name:</strong> {{ profile.first_name }}</p>
+            <p><strong>Last Name:</strong> {{ profile.last_name }}</p>
+            <p><strong>Phone Number:</strong> {{ profile.phone_number }}</p>
+            <p><strong>NIDA:</strong> {{ profile.nida }}</p>
+            <p><strong>Date of Birth:</strong> {{ profile.birth_date }}</p>
+            <p><strong>Gender:</strong> {{ profile.gender }}</p>
+            <p><strong>Next of Kin First Name:</strong> {{ profile.next_of_kin_first_name }}</p>
+            <p><strong>Next of Kin Last Name:</strong> {{ profile.next_of_kin_last_name }}</p>
+            <p><strong>Next of Kin Phone Number:</strong> {{ profile.next_of_kin_phone_number }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
