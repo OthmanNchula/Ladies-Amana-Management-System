@@ -13,8 +13,7 @@ from django.http import JsonResponse
 from django.db.models import Sum, Case, When
 from django.db.models import Sum, Case, When, Value, DecimalField
 from django.contrib.auth import get_user_model
-from adminApp.models import PendingChanges, ActivityLog
-from django.http import HttpResponse
+from adminApp.models import PendingChanges, ActivityLog, VerifiedChanges, RejectedChanges
 from django.utils import timezone
 
 
@@ -242,7 +241,7 @@ def manage_swadaqa(request, user_id):
 
     # Handle form submission
     if request.method == 'POST':
-        amount = request.POST.get('amount_{}'.format(current_year))
+        amount = request.POST.get('amount_{}'.format(selected_year))  # Use selected_year instead of current_year
         if amount:
             Swadaqa.objects.update_or_create(
                 user=user,
@@ -254,11 +253,12 @@ def manage_swadaqa(request, user_id):
     context = {
         'managed_user': user,
         'years': years,
-        'current_year': current_year,
+        'current_year': selected_year,  # Ensure this reflects the selected year
         'current_amount': current_amount,
         'show_back_button': True,
     }
     return render(request, 'adminApp/manage_swadaqa.html', context)
+
 
 @login_required
 def swadaqa_data(request, user_id, year):
@@ -282,23 +282,15 @@ def manage_mkopo(request, user_id):
     user = get_object_or_404(User, id=user_id)
 
     # Step 1: Check loan status
-    try:
-        current_loan = Loan.objects.get(user=user, status='Approved')
-        loan_status = 'Active'
-    except Loan.DoesNotExist:
-        current_loan = None
-        loan_status = 'Inactive'
+    current_loan = Loan.objects.filter(user=user, status='Approved').first()  # Get the first approved loan, if any
+    loan_status = 'Active' if current_loan else 'Inactive'
 
     # Step 2: Loan Limit Message
     loan_limit = 10000000  # Example loan limit
 
     # Step 3: Check if there's a pending loan request
-    try:
-        loan_request = Loan.objects.get(user=user, status='Pending')
-        has_request = True
-    except Loan.DoesNotExist:
-        loan_request = None
-        has_request = False
+    loan_request = Loan.objects.filter(user=user, status='Pending').first()  # Get the first pending loan, if any
+    has_request = loan_request is not None
 
     # Step 4: Loan History
     loan_history = Loan.objects.filter(user=user).exclude(status='Pending')
@@ -331,61 +323,73 @@ def manage_mkopo(request, user_id):
 
     return render(request, 'adminApp/manage_mkopo.html', context)
 
+@login_required(login_url='/account/login/')
 def process_loan_request(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
     if request.method == 'POST':
         decision = request.POST.get('decision')
-        loan_request = get_object_or_404(Loan, user=user, status='Pending')
-
-        if decision == 'accept':
-            # Accept the loan request
-            loan_request.status = 'Approved'
-            loan_request.date = timezone.now()  # Update the date to the approval date
-            loan_request.save()
-        elif decision == 'reject':
-            # Reject the loan request
-            loan_request.status = 'Rejected'
-            loan_request.save()
         
+        # Retrieve all pending loans for the user
+        loan_requests = Loan.objects.filter(user=user, status='Pending')
+
+        if loan_requests.exists():
+            # Process each loan request (if more than one, process each or decide on other logic)
+            for loan_request in loan_requests:
+                if decision == 'accept':
+                    # Accept the loan request
+                    loan_request.status = 'Approved'
+                    loan_request.date = timezone.now()  # Update the date to the approval date
+                    loan_request.save()
+                elif decision == 'reject':
+                    # Reject the loan request
+                    loan_request.status = 'Rejected'
+                    loan_request.save()
+
     return redirect('admin_App:manage_mkopo', user_id=user.id)
 
-@login_required(login_url='/account/login/')
+
+login_required(login_url='/account/login/')
 def loan_payments_view(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    current_loan = get_object_or_404(Loan, user=user, status='Approved')
+    
+    # Get the most recent approved loan for the user
+    current_loan = Loan.objects.filter(user=user, status='Approved').order_by('-date').first()
 
-    # Calculate the start and end dates for the 36-month period
-    start_date = current_loan.date + timedelta(days=30)  # Loan payment starts one month after approval
-    end_date = start_date + timedelta(days=36*30)  # 36 months period
+    if not current_loan:
+        # Handle case where no approved loans are found
+        messages.error(request, 'No approved loans found for this user.')
+        return redirect('admin_App:manage_mkopo', user_id=user.id)
+
+    if request.method == 'POST':
+        year = request.POST.get('year')
+        month = request.POST.get('month')
+        amount = request.POST.get('amount')
+        
+        # Create or update the payment record
+        LoanPayment.objects.update_or_create(
+            loan=current_loan,
+            year=year,
+            month=month,
+            defaults={'amount': amount}
+        )
+        
+        messages.success(request, 'Payment recorded successfully.')
+        return redirect('admin_App:loan_payments', user_id=user.id)
 
     # Prepare payment schedule
-    payments_schedule = []
-    current_date = start_date
-
-    for _ in range(36):
-        year = current_date.year
-        month = current_date.month
-        payments = LoanPayment.objects.filter(loan=current_loan, payment_date__year=year, payment_date__month=month)
-        total_paid = sum(payment.amount for payment in payments)
-        
-        payments_schedule.append({
-            'year': year,
-            'month': month,
-            'total_paid': total_paid,
-            'payments': payments,
-        })
-        
-        current_date += timedelta(days=30)  # Move to the next month
+    payments_schedule = LoanPayment.objects.filter(loan=current_loan).order_by('year', 'month')
 
     context = {
-        'managed_user': user,
+        'user': user,
         'current_loan': current_loan,
-        'payments_schedule': payments_schedule,
-        'show_back_button': True,
+        'payments': payments_schedule,
     }
     
     return render(request, 'adminApp/loan_payments.html', context)
+
+
+
 @login_required(login_url='/account/login/')
 def mitaji_view(request):
     current_year = datetime.now().year
@@ -562,22 +566,23 @@ def reject_loan(request, loan_id):
     messages.success(request, 'Loan rejected successfully.')
     return redirect('admin_App:loan_requests')
 
-
+import json
 # verification for admin1
-login_required(login_url='/account/login/')
+@login_required(login_url='/account/login/')
 def verification(request):
     if request.user.username == 'admin1':
-        if request.method == 'POST':
-            password = request.POST.get('password')
-            primary_admin = authenticate(username=request.user.username, password=password)
-            if primary_admin is not None:
-                pending_changes = PendingChanges.objects.filter(is_approved=False)
-                return render(request, 'adminApp/verification.html', {'pending_changes': pending_changes})
-            else:
-                messages.error(request, 'Invalid password.')
-                return redirect('admin_App:verification')
-        return render(request, 'adminApp/password_prompt.html')
+        # Fetch all pending changes that have not been approved yet, ordered by the latest created date.
+        pending_changes = PendingChanges.objects.filter(is_approved=False).order_by('-created_at')
+
+        # Ensure that the data field is properly parsed if it's stored as JSON.
+        for change in pending_changes:
+            if isinstance(change.data, str):
+                change.data = json.loads(change.data)
+
+        # Render the verification page with the pending changes.
+        return render(request, 'adminApp/verification.html', {'pending_changes': pending_changes})
     else:
+        # If the user is not 'admin1', deny access and redirect to the admin dashboard.
         messages.error(request, 'Access denied.')
         return redirect('admin_App:admin_dashboard')
 
@@ -589,9 +594,15 @@ def approve_change(request, change_id):
         pending_change.approved_by = request.user
         pending_change.save()
 
+        # Store the approved change in VerifiedChanges
+        VerifiedChanges.objects.create(pending_change=pending_change)
+
+        # Log the action in ActivityLog
         ActivityLog.objects.create(
             admin=request.user,
             action=f"Approved {pending_change.action}",
+            affected_user=pending_change.data.get('user'),
+            amount=pending_change.data.get('amount'),
             details=f"Approved changes to {pending_change.table_name}"
         )
 
@@ -602,22 +613,36 @@ def approve_change(request, change_id):
 def reject_change(request, change_id):
     if request.user.username == 'admin1':
         pending_change = get_object_or_404(PendingChanges, id=change_id)
-        pending_change.delete()
 
+        # Store the rejected change in RejectedChanges
+        RejectedChanges.objects.create(pending_change=pending_change)
+
+        # Log the rejection action in ActivityLog
         ActivityLog.objects.create(
             admin=request.user,
             action=f"Rejected {pending_change.action}",
+            affected_user=pending_change.data.get('user'),
+            amount=pending_change.data.get('amount'),
             details=f"Rejected changes to {pending_change.table_name}"
         )
+
+        # Delete the pending change after rejection
+        pending_change.delete()
 
         messages.success(request, 'Change rejected successfully.')
     return redirect('admin_App:verification')
 
 @login_required(login_url='/account/login/')
 def verified_actions(request):
-    verified_actions = ActivityLog.objects.all().order_by('-timestamp')
+    # Fetch only actions that were logged when a change was approved
+    verified_actions = ActivityLog.objects.filter(action__icontains='Approved').order_by('-timestamp')
     return render(request, 'adminApp/verified_actions.html', {'verified_actions': verified_actions})
 
+@login_required(login_url='/account/login/')
+def rejected_actions(request):
+    # Fetch only actions that were logged when a change was rejected
+    rejected_actions = ActivityLog.objects.filter(action__icontains='Rejected').order_by('-timestamp')
+    return render(request, 'adminApp/rejected_actions.html', {'rejected_actions': rejected_actions})
 
 
 # mengineyo

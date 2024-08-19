@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load michango_filters %}
 {% block content %}
 <div class="container mt-5">
     <h1 class="text-center">Michango ya Kila Mwezi - <span id="selected-year">{{ current_year }}</span></h1>
@@ -25,7 +24,7 @@
                         {% for month in months %}
                             <tr>
                                 <td>{{ month }}</td>
-                                <td id="amount-{{ month }}">-</td>
+                                <td id="amount-{{ forloop.counter0 }}">-</td>
                             </tr>
                         {% endfor %}
                         <tr>
@@ -57,15 +56,15 @@
                     .then(response => response.json())
                     .then(data => {
                         let totalAmount = 0;
-                        for (let month = 1; month <= 12; month++) {
+                        for (let month = 0; month < 12; month++) {
                             const amountElement = document.getElementById(`amount-${month}`);
-                            const amount = data[month] ? data[month] : '-';
+                            const amount = data[month + 1] ? data[month + 1] : '-';
                             amountElement.innerText = amount;
-                            if (data[month]) {
-                                totalAmount += parseFloat(data[month]);
+                            if (data[month + 1]) {
+                                totalAmount += parseFloat(data[month + 1]);
                             }
                         }
-                        totalAmountElement.innerText = totalAmount;
+                        totalAmountElement.innerText = totalAmount.toLocaleString();
                     });
             });
         });

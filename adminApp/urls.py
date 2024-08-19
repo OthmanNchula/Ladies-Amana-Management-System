@@ -33,8 +33,6 @@ urlpatterns = [
     path('rejected-loans/', views.rejected_loans, name='rejected_loans'),
     path('approve-loan/<int:loan_id>/', views.approve_loan, name='approve_loan'),
     path('reject-loan/<int:loan_id>/', views.reject_loan, name='reject_loan'),
-    path('approved-loans/', views.approved_loans, name='approved_loans'),
-    path('rejected-loans/', views.rejected_loans, name='rejected_loans'),
     
     #mtaji
     path('mitaji/', views.mitaji_view, name='mitaji'), 
@@ -47,9 +45,11 @@ urlpatterns = [
     
     # verification urls
     path('verification/', views.verification, name='verification'),
-    path('approve-change/<int:change_id>/', views.approve_change, name='approve_change'),
-    path('reject-change/<int:change_id>/', views.reject_change, name='reject_change'),
-    path('verified-actions/', views.verified_actions, name='verified_actions'),
+    path('approve/<int:change_id>/', views.approve_change, name='approve_change'),
+    path('reject/<int:change_id>/', views.reject_change, name='reject_change'),
+    path('verified_actions/', views.verified_actions, name='verified_actions'),
+    path('rejected_actions/', views.rejected_actions, name='rejected_actions'),
+
     
     # mengineyo urls
     path('mengineyo/', views.mengineyo, name='mengineyo'),

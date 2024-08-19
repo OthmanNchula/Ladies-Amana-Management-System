@@ -1,7 +1,7 @@
 {% extends 'admin_base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <h2>Verified Actions</h2>
+    <h2>Rejected Actions</h2>
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -16,16 +16,16 @@
             </tr>
         </thead>
         <tbody>
-            {% for change in verified_actions %}
+            {% for change in rejected_actions %}
             <tr>
                 <td>{{ change.pending_change.action_no }}</td>
-                <td>{{ change.verified_at }}</td>
+                <td>{{ change.rejected_at }}</td>
                 <td>{{ change.pending_change.admin.username }}</td>
                 <td>{{ change.pending_change.data.user }}</td>
                 <td>{{ change.pending_change.table_name }}</td>
                 <td>{{ change.pending_change.action }}</td>
                 <td>{{ change.pending_change.data.amount }}</td>
-                <td>Approved</td>
+                <td>Rejected</td>
             </tr>
             {% endfor %}
         </tbody>

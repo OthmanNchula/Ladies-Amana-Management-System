@@ -6,10 +6,10 @@
     <h3 class="text-center">Manage {{ managed_user.username }}'s Loan</h3>
 
     <!-- Navigation Links -->
-    <div class="nav nav-tabs justify-content-center" style="background-color: #D6A2AD;">
-        <a class="nav-link active text-black mx-3" href="javascript:void(0);" onclick="showSection('maombi')" id="maombi-tab">Maombi ya Mkopo</a>
-        <a class="nav-link text-black mx-3" href="javascript:void(0);" onclick="showSection('historia')" id="historia-tab">Historia ya Mikopo</a>
-        <a class="nav-link text-black mx-3" href="javascript:void(0);" onclick="showSection('malipo')" id="malipo-tab">Malipo ya Mkopo</a>
+    <div class="nav nav-tabs justify-content-center mx-auto" style="background-color: #D6A2AD; max-width: 630px;">
+        <a class="nav-link active text-black" href="javascript:void(0);" onclick="showSection('maombi')" id="maombi-tab">Maombi ya Mkopo</a>
+        <a class="nav-link text-black" href="javascript:void(0);" onclick="showSection('historia')" id="historia-tab">Historia ya Mikopo</a>
+        <a class="nav-link text-black" href="javascript:void(0);" onclick="showSection('malipo')" id="malipo-tab">Malipo ya Mkopo</a>
     </div>
     
     <!-- Loan Request Status Section -->
@@ -28,12 +28,30 @@
         </div>
         <div class="text-center">
             {% if has_request %}
-                <p>Pending loan request: Tsh {{ loan_request.amount|intcomma }}/=</p>
-                <form method="post" action="{% url 'admin_App:process_loan_request' managed_user.id %}">
-                    {% csrf_token %}
-                    <button type="submit" name="decision" value="accept" class="btn btn-success">Accept</button>
-                    <button type="submit" name="decision" value="reject" class="btn btn-danger">Reject</button>
-                </form>
+                <div class="table-responsive mx-auto" style="max-width: 600px;">
+                    <table class="table table-bordered">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th colspan="2" class="text-center">Pending Loan Request</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Requested Amount</strong></td>
+                                <td>Tsh {{ loan_request.amount|intcomma }}/=</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-center">
+                                    <form method="post" action="{% url 'admin_App:process_loan_request' managed_user.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" name="decision" value="accept" class="btn btn-success mx-2">Accept</button>
+                                        <button type="submit" name="decision" value="reject" class="btn btn-danger mx-2">Reject</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             {% else %}
                 <p>No pending loan requests.</p>
             {% endif %}
@@ -78,12 +96,12 @@
                 </table>
             </div>
             <div class="text-center mt-4">
-                <form method="post" action="{% url 'admin_App:record_payment' managed_user.id %}">
+                <form method="post" action="{% url 'admin_App:loan_payments' managed_user.id %}">
                     {% csrf_token %}
                     <input type="number" name="year" placeholder="Year" class="form-control mb-2" required>
                     <input type="text" name="month" placeholder="Month" class="form-control mb-2" required>
                     <input type="number" name="amount" placeholder="Payment Amount" class="form-control mb-2" required>
-                    <button type="submit" class="btn btn-success">Record Payment</button>
+                    <button type="submit" class="btn btn-success">Loan Payment</button>
                 </form>
             </div>
         {% else %}
@@ -125,13 +143,9 @@
         color: black !important;
     }
 
-    .d-none {
-        display: none !important;
-    }
-
-    .mx-3 {
-        margin-left: 1rem !important;
-        margin-right: 1rem !important;
+    .mx-auto {
+        margin-left: auto !important;
+        margin-right: auto !important;
     }
 </style>
 {% endblock %}

@@ -1,60 +1,43 @@
-{% extends 'admin_base.html' %}
+<!-- mkopoApp/templates/mkopoApp/loan_payments.html -->
+
+{% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-3">
-    <h1 class="text-center">Loan Payments for {{ user.username }}</h1>
+<div class="container mt-5">
+    <h2 class="text-center">Malipo ya Mkopo</h2>
 
-    <!-- Current Loan Information -->
-    <div class="row mt-3">
-        <div class="col-md-12">
-            <p><strong>Loan Amount:</strong> Tsh {{ current_loan.amount|floatformat:0 }}/=</p>
-            <p><strong>Start Date:</strong> {{ current_loan.start_date }}</p>
-        </div>
+    <!-- Display Django messages -->
+    {% if messages %}
+    <div class="col-md-12">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
     </div>
+    {% endif %}
 
-    <!-- Payment History -->
-    <div class="row mt-3">
-        <div class="col-md-12">
-            <h4>Payment History</h4>
-            <ul>
+    {% if payments %}
+    <div class="table-responsive" style="max-width: 600px; margin: auto;">
+        <table class="table mtaji-table">
+            <thead>
+                <tr>
+                    <th class="col-4">Mwaka</th>
+                    <th class="col-4">Mwezi</th>
+                    <th class="col-4">Kiasi</th>
+                </tr>
+            </thead>
+            <tbody>
                 {% for payment in payments %}
-                <li>
-                    {{ payment.year }} - {{ payment.month }}: Tsh {{ payment.amount|floatformat:0 }}/=
-                </li>
+                <tr>
+                    <td>{{ payment.year }}</td>
+                    <td>{{ payment.get_month_display }}</td>
+                    <td>{{ payment.amount|floatformat:0 }}/=</td>
+                </tr>
                 {% endfor %}
-            </ul>
-        </div>
+            </tbody>
+        </table>
     </div>
-
-    <!-- Record a New Payment -->
-    <div class="row mt-3">
-        <div class="col-md-12">
-            <h4>Record a New Payment</h4>
-            <form method="post" action="{% url 'admin_App:loan_payments' user.id %}">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="year">Year</label>
-                    <select name="year" id="year" class="form-control">
-                        {% for year in 3_years_ahead %}
-                        <option value="{{ year }}">{{ year }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="month">Month</label>
-                    <select name="month" id="month" class="form-control">
-                        {% for month in months %}
-                        <option value="{{ month }}">{{ month }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="amount">Amount (Tsh)</label>
-                    <input type="text" name="amount" id="amount" class="form-control" placeholder="Enter amount" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Record Payment</button>
-            </form>
-        </div>
-    </div>
+    {% else %}
+    <p class="text-center">Hakuna malipo yaliyofanywa kwa mkopo huu.</p>
+    {% endif %}
 </div>
 {% endblock %}

@@ -1,16 +1,46 @@
 {% extends 'admin_base.html' %}
 {% block content %}
-<div class="container">
+<div class="container mt-4">
     <h2>Pending Changes for Verification</h2>
-    <ul class="list-group">
-        {% for change in pending_changes %}
-        <li class="list-group-item">
-            <strong>{{ change.table_name }}:</strong> {{ change.action }} <br>
-            <pre>{{ change.data }}</pre>
-            <a href="{% url 'admin_App:approve_change' change.id %}" class="btn btn-success">Approve</a>
-            <a href="{% url 'admin_App:reject_change' change.id %}" class="btn btn-danger">Reject</a>
-        </li>
-        {% endfor %}
-    </ul>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Action no</th>
+                <th>Date</th>
+                <th>Admin</th>
+                <th>Member Account</th>
+                <th>Category</th>
+                <th>Action</th>
+                <th>Amount</th>
+                <th>Approve</th>
+                <th>Reject</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for change in pending_changes %}
+            <tr>
+                <td>{{ change.action_no }}</td>
+                <td>{{ change.created_at }}</td>
+                <td>{{ change.admin.username }}</td>
+                <td>{{ change.data.user }}</td> <!-- Assuming user is stored in data -->
+                <td>{{ change.table_name }}</td>
+                <td>{{ change.action }}</td>
+                <td>{{ change.data.amount }}</td>
+                <td>
+                    <form method="post" action="{% url 'admin_App:approve_change' change.action_no %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Approve</button>
+                    </form>
+                </td>
+                <td>
+                    <form method="post" action="{% url 'admin_App:reject_change' change.action_no %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

@@ -158,6 +158,9 @@
                         <a href="{% url 'admin_App:verified_actions' %}" class="list-group-item list-group-item-action" data-section="verified_actions">
                             <span>Verified Actions</span>
                         </a>
+                        <a href="{% url 'admin_App:rejected_actions' %}" class="list-group-item list-group-item-action" data-section="verified_actions">
+                            <span>Rejected Actions</span>
+                        </a>
                         {% if user.username == 'admin1' %}
                         <a href="{% url 'admin_App:verification' %}" class="list-group-item list-group-item-action" data-section="verification">
                             <span>Verification</span>

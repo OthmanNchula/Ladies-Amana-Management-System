@@ -16,12 +16,6 @@
                 <h2 class="text-center">Omba Mkopo</h2>
                 <p class="text-center">Unaweza kuomba mkopo mpaka Tsh 10,000,000.</p>
 
-                 <!-- Display Django messages -->
-                 {% if messages %}
-                 {% for message in messages %}
-                     <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                 {% endfor %}
-                 {% endif %}
 
                 <div class="col-md-6 mx-auto">
                     <form method="post" class="mt-4" id="loan-request-form">
@@ -40,6 +34,7 @@
                     <table class="table mtaji-table">
                         <thead>
                             <tr>
+                                <th class="col-4">Mwaka</th>
                                 <th class="col-4">Mwezi</th>
                                 <th class="col-4">Kiasi</th>
                             </tr>
@@ -47,9 +42,9 @@
                         <tbody>
                             {% for payment in payments %}
                                 <tr>
+                                    <td>{{ payment.year }}</td>
                                     <td>{{ payment.month }}</td>
                                     <td>{{ payment.amount }}</td>
-                                    <td>{{ payment.status }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
