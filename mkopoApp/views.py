@@ -4,17 +4,26 @@ from .models import Loan, LoanPayment
 from .forms import LoanRequestForm
 from django.contrib import messages
 from .serializers import LoanSerializer
+from django.db.models import Sum
 
 @login_required(login_url='/account/login/')
 def loan_request_view(request):
     # Check if there is any active loan
-    active_loan = Loan.objects.filter(user=request.user, status='Approved').exists()
+    active_loan = Loan.objects.filter(user=request.user, status='Approved').first()
+
     if active_loan:
+        total_loan_amount = active_loan.amount
+        total_payment_to_date = LoanPayment.objects.filter(loan=active_loan).aggregate(total=Sum('amount'))['total'] or 0
+        total_remaining = total_loan_amount - total_payment_to_date
+        
         messages.error(request, 'You still have an active loan. Finish loan payment to request another loan.')
         return render(request, 'mkopoApp/loan_request.html', {
             'form': LoanRequestForm(),  # Provide a fresh form
             'loans': Loan.objects.filter(user=request.user),
             'payments': LoanPayment.objects.filter(loan__user=request.user).order_by('year', 'month'),
+            'total_loan_amount': total_loan_amount,
+            'total_payment_to_date': total_payment_to_date,
+            'total_remaining': total_remaining,
         })
 
     # Check if there is a pending loan request
@@ -55,6 +64,9 @@ def loan_request_view(request):
         'form': form,
         'loans': Loan.objects.filter(user=request.user),
         'payments': LoanPayment.objects.filter(loan__user=request.user).order_by('year', 'month'),
+        'total_loan_amount': None,
+        'total_payment_to_date': None,
+        'total_remaining': None,
     })
 
 @login_required(login_url='/account/login/')

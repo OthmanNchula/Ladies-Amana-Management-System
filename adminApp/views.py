@@ -389,7 +389,6 @@ def loan_payments_view(request, user_id):
     return render(request, 'adminApp/loan_payments.html', context)
 
 
-
 @login_required(login_url='/account/login/')
 def mitaji_view(request):
     current_year = datetime.now().year
@@ -405,6 +404,7 @@ def mitaji_view(request):
         mtaji = Mtaji.objects.filter(user=member, year=selected_year).first()
         amount = mtaji.amount if mtaji else 0
         members_mtaji.append({
+            'user_id': member.id,
             'username': member.username,
             'amount': amount
         })
@@ -418,6 +418,7 @@ def mitaji_view(request):
     }
 
     return render(request, 'adminApp/mitaji.html', context)
+
 
 #Michango
 @login_required
@@ -441,6 +442,7 @@ def michango_view(request):
             month: Michango.objects.filter(user=member, year=selected_year, month=i+1).aggregate(Sum('amount'))['amount__sum'] or 0 for i, month in enumerate(months)
         }
         members_michango.append({
+            'user_id': member.id,
             'username': member.username,
             'michango_by_month': member_michango_by_month
         })
@@ -457,45 +459,43 @@ def michango_view(request):
 
     return render(request, 'adminApp/michango.html', context)
 
+
 @login_required(login_url='/account/login')
 def swadaqa_view(request):
     current_year = datetime.now().year
-    years = list(range(2018,current_year + 1))
+    years = list(range(2018, current_year + 1))
     selected_year = int(request.GET.get('year', current_year))
-    
+
     total_swadaqa = Swadaqa.objects.aggregate(Sum('amount'))['amount__sum'] or 0
     total_swadaqa_year = Swadaqa.objects.filter(year=selected_year).aggregate(Sum('amount'))['amount__sum'] or 0
     members = User.objects.filter(is_staff=False, is_superuser=False)
-    
+
     members_swadaqa = []
     for member in members:
         swadaqa = Swadaqa.objects.filter(user=member, year=selected_year).first()
         amount = swadaqa.amount if swadaqa else 0
         members_swadaqa.append({
+            'user_id': member.id,
             'username': member.username,
             'amount': amount
         })
-        
+
     context = {
-        'total_swadaqa':total_swadaqa,
+        'total_swadaqa': total_swadaqa,
         'total_swadaqa_year': total_swadaqa_year,
         'years': years,
         'selected_year': selected_year,
         'members_swadaqa': members_swadaqa
     }
-    
+
     return render(request, 'adminApp/swadaqas.html', context)
 
 #loans
 @login_required(login_url='/account/login/')
 def members_loans(request):
-    # Get the current year
     current_year = datetime.now().year
-    
-    # Get the selected year from the request (default to current year)
     selected_year = int(request.GET.get('year', current_year))
     
-    # Fetch all members and their loan status
     members = User.objects.filter(is_staff=False, is_superuser=False).annotate(
         total_loan=Sum(
             Case(
@@ -506,34 +506,31 @@ def members_loans(request):
         )
     )
 
-    # Prepare a list of members with their loan status and amount
     members_loans_info = []
     for member in members:
         loan = Loan.objects.filter(user=member, status='Approved', date__year=selected_year).first()
         loan_status = 'No Loan' if loan is None else 'Approved'
         loan_amount = 0 if loan is None else loan.amount
         members_loans_info.append({
+            'user_id': member.id,  # Ensure user_id is included
             'username': member.username,
             'phone_number': member.profile.phone_number,
             'loan_status': loan_status,
             'loan_amount': loan_amount
         })
 
-    # Calculate the total amount of loans taken in the selected year
     total_loans = Loan.objects.filter(status='Approved', date__year=selected_year).aggregate(Sum('amount'))['amount__sum'] or 0
-
-    # Generate a list of years for the dropdown (e.g., from 2018 to the current year)
     years = list(range(2018, current_year + 1))
 
     context = {
         'members_loans_info': members_loans_info,
         'total_loans': total_loans,
+        'total_year_loans': total_loans,
         'years': years,
         'selected_year': selected_year,
     }
 
     return render(request, 'adminApp/members_loans.html', context)
-
 
 @login_required(login_url='/account/login/')
 def loan_requests(request):

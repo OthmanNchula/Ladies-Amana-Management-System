@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.db.models import Sum  # Add this import
 from .models import Michango
 from datetime import datetime
 from django.http import JsonResponse
@@ -12,6 +13,13 @@ def mchango_view(request):
 
     # Fetch contributions for the user
     contributions = Michango.objects.filter(user=request.user)
+
+    # Calculate total mchango for the current year
+    total_mchango_year = contributions.filter(year=current_year).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Calculate total mchango for all years
+    total_mchango_all_years = contributions.aggregate(total=Sum('amount'))['total'] or 0
+
     data_by_year = {}
     for year in years:
         yearly_contributions = contributions.filter(year=year)
@@ -25,6 +33,8 @@ def mchango_view(request):
         'years': years,
         'data_by_year': data_by_year,
         'months': month_names,
+        'total_mchango_year': total_mchango_year,
+        'total_mchango_all_years': total_mchango_all_years,
     })
 
 @login_required(login_url='/account/login/')

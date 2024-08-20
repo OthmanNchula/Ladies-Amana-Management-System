@@ -3,8 +3,9 @@
 {% load mchango_filters %}
 {% block content %}
 <div class="container mt-1">
-    <div class="row">
-        <div class="col-md-6 mb-4">
+    <!-- Cards for Total Michango -->
+    <div class="row mb-4 text-center">
+        <div class="col-md-6">
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya michango ya miaka yote</h5>
@@ -13,7 +14,7 @@
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
+        <div class="col-md-6">
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya michango ya mwaka {{ selected_year }}</h5>
@@ -22,49 +23,81 @@
             </div>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col-md-3">
-            <div class="list-group">
-                {% for year in years %}
-                    <a href="?year={{ year }}" class="list-group-item list-group-item-action {% if year == selected_year %}active{% endif %}">
-                        {{ year }}
-                    </a>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="col-md-9">
-            <h2 class="text-center">Michango ya Kila Mwezi - {{ selected_year }}</h2>
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Member</th>
-                            {% for month in months %}
-                                <th>{{ month }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for member in members_michango %}
-                            <tr>
-                                <td>{{ member.username }}</td>
-                                {% for month in months %}
-                                    <td>{{ member.michango_by_month|get_item:month|floatformat:0 }}</td>
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                        <tr>
-                            <td style="font-weight: bold;">TOTAL</td>
-                            {% for month in months %}
-                                <td>{{ total_michango_by_month|get_item:month|floatformat:0 }}</td>
-                            {% endfor %}
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+    <h2 class="text-center">Michango ya Kila Mwezi - {{ selected_year }}</h2>
+    <!-- Horizontal Navbar for Years -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-auto">
+            <nav class="navbar navbar-expand-lg navbar-light" style="max-width: 700px; background-color: #D6A2AD;">
+                <ul class="navbar-nav mx-auto">
+                    {% for year in years %}
+                    <li class="nav-item" style="margin-right: 15px;">
+                        <a href="javascript:void(0);" class="nav-link year-link" data-year="{{ year }}">{{ year }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
         </div>
     </div>
+
+    <div class="table-responsive"  style="max-width: 1000px; margin: auto;">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    {% for month in months %}
+                        <th>{{ month }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for member in members_michango %}
+                    <tr data-user-id="{{ member.user_id }}" style="cursor: pointer;">
+                        <td>{{ member.username }}</td>
+                        {% for month in months %}
+                            <td>{{ member.michango_by_month|get_item:month|floatformat:0 }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td style="font-weight: bold;">TOTAL</td>
+                    {% for month in months %}
+                        <td>{{ total_michango_by_month|get_item:month|floatformat:0 }}</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const yearLinks = document.querySelectorAll('.year-link');
+        const selectedYearElement = document.getElementById('selected-year');
+
+        yearLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                yearLinks.forEach(link => link.classList.remove('active'));
+                this.classList.add('active');
+
+                const selectedYear = this.getAttribute('data-year');
+                selectedYearElement.innerText = selectedYear;
+
+                // Fetch data for the selected year (This part can be handled in your backend view)
+                location.href = `?year=${selectedYear}`;
+            });
+        });
+
+        // Trigger click for the selected year to display initial data
+        document.querySelector(`.year-link[data-year="{{ selected_year }}"]`).classList.add('active');
+
+        // Add click event listener to each table row
+        const memberRows = document.querySelectorAll('tr[data-user-id]');
+        memberRows.forEach(row => {
+            row.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                window.location.href = `/adminApp/manage-user/${userId}/mchango/`;
+            });
+        });
+    });
+</script>
 {% endblock %}

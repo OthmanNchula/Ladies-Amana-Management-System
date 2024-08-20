@@ -12,19 +12,20 @@ def mtaji_view(request):
     # Fetch contributions for the user
     mtaji_list = Mtaji.objects.filter(user=request.user)
     data_by_year = {}
+    total_mtaji = 0
     for year in years:
         yearly_contributions = mtaji_list.filter(year=year)
-        if yearly_contributions.exists():
-            data_by_year[year] = sum(mtaji.amount for mtaji in yearly_contributions)
-        else:
-            data_by_year[year] = 0
+        yearly_total = sum(mtaji.amount for mtaji in yearly_contributions)
+        data_by_year[year] = yearly_total
+        total_mtaji += yearly_total
 
     return render(request, 'mtajiApp/mtaji.html', {
         'current_year': current_year,
         'years': years,
         'data_by_year': data_by_year,
+        'total_mtaji': total_mtaji,  # Pass the total mtaji to the template
     })
-    
+
 @login_required(login_url='/account/login/')
 def mtaji_data(request, year):
     contributions = Mtaji.objects.filter(user=request.user, year=year)
