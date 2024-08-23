@@ -426,21 +426,23 @@ def michango_view(request):
     current_year = datetime.now().year
     years = list(range(2018, current_year + 1))
     months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-
-    # Fetch total michango
-    total_michango = Michango.objects.aggregate(Sum('amount'))['amount__sum'] or 0
-    members = User.objects.filter(is_staff=False, is_superuser=False)
+    
+    # Get selected year from the request (default to current year)
     selected_year = int(request.GET.get('year', current_year))
+
+    # Fetch total michango for all years
+    total_michango = Michango.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+    
+     # Fetch total michango for the selected year
     total_year_michango = Michango.objects.filter(year=selected_year).aggregate(Sum('amount'))['amount__sum'] or 0
+    
+     # Fetch michango data for each month in the selected year
+    total_michango_by_month = [Michango.objects.filter(year=selected_year, month=i+1).aggregate(Sum('amount'))['amount__sum'] or 0 for i in range(12)]
 
-    # Fetch michango data for each month in the selected year
-    total_michango_by_month = {month: Michango.objects.filter(year=selected_year, month=i+1).aggregate(Sum('amount'))['amount__sum'] or 0 for i, month in enumerate(months)}
-
+    members = User.objects.filter(is_staff=False, is_superuser=False)
     members_michango = []
     for member in members:
-        member_michango_by_month = {
-            month: Michango.objects.filter(user=member, year=selected_year, month=i+1).aggregate(Sum('amount'))['amount__sum'] or 0 for i, month in enumerate(months)
-        }
+        member_michango_by_month = [Michango.objects.filter(user=member, year=selected_year, month=i+1).aggregate(Sum('amount'))['amount__sum'] or 0 for i in range(12)]
         members_michango.append({
             'user_id': member.id,
             'username': member.username,
@@ -458,8 +460,6 @@ def michango_view(request):
     }
 
     return render(request, 'adminApp/michango.html', context)
-
-
 @login_required(login_url='/account/login')
 def swadaqa_view(request):
     current_year = datetime.now().year

@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path, include
 from loginApp import views
 from loginApp import views as login_views
+from django.conf.urls.static import static
+from django.conf import settings
 
 
 urlpatterns = [
@@ -15,3 +17,6 @@ urlpatterns = [
     path('mchango/', include('michangoApp.urls', namespace="mchango_App")),
     path('swadaqa/', include('swadaqaApp.urls', namespace='swadaqa_App')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

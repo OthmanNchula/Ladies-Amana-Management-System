@@ -7,6 +7,7 @@ class Michango(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    screenshot = models.ImageField(upload_to='michango_screenshots/', null=True, blank=True)  # New field for screenshots
 
     class Meta:
         unique_together = ('user', 'year', 'month')
