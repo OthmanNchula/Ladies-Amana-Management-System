@@ -11,10 +11,15 @@ class Loan(models.Model):
         ('Approved', 'Approved'),
         ('Rejected', 'Rejected')
     ])
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='loan_modified_by')
+
+    def save(self, *args, **kwargs):
+        if 'modified_by' in kwargs:
+            self.modified_by = kwargs.pop('modified_by')
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} - {self.status}"
-
 
 class LoanPayment(models.Model):
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='payments')
@@ -25,6 +30,12 @@ class LoanPayment(models.Model):
         (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December')
     ])
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='loanpayment_modified_by')
+
+    def save(self, *args, **kwargs):
+        if 'modified_by' in kwargs:
+            self.modified_by = kwargs.pop('modified_by')
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Payment for {self.loan.user.username} - {self.year}/{self.month}: {self.amount}"

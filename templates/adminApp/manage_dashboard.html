@@ -39,6 +39,16 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-md-3 mb-4 d-flex">
+            <div class="card text-center border-0 shadow flex-fill d-flex flex-column">
+                <div class="card-body flex-grow-1 d-flex flex-column">
+                    <h5 class="card-title">View Payments Image</h5>
+                    <p class="card-text">View payment screenshots uploaded by {{ managed_user.username }}.</p>
+                    <a href="{% url 'admin_App:view_payment_images' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">View Payments</a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!--buttons for viewing details and deleting account -->

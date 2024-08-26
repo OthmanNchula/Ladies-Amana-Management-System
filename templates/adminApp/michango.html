@@ -116,6 +116,15 @@
 
         // Trigger click for the selected year to display initial data
         document.querySelector(`.year-link[data-year="{{ selected_year }}"]`).classList.add('active');
+
+        // Add click event listener to each table row
+        const memberRows = document.querySelectorAll('tr[data-user-id]');
+        memberRows.forEach(row => {
+            row.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                window.location.href = `/adminApp/manage-user/${userId}/mchango/`;
+            });
+        });
     });
 </script>
 {% endblock %}

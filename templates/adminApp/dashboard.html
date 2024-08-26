@@ -1,5 +1,5 @@
 {% extends 'admin_base.html' %}
-
+{% load humanize %}
 {% block content %}
 <div class="container mt-1">
     <div class="row">
@@ -16,7 +16,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya mtaji</h5>
-                    <p class="card-text">{{ total_mtaji }}</p>
+                    <p class="card-text">{{  total_mtaji|floatformat:0|intcomma }} Tsh</p>
                     <a href="{% url 'admin_App:mitaji' %}" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
                 </div>
             </div>
@@ -25,7 +25,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya michango</h5>
-                    <p class="card-text">{{ total_michango }}</p>
+                    <p class="card-text">{{ total_michango|floatformat:0|intcomma }} Tsh</p>
                     <a href="{% url 'admin_App:michango' %}" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
                 </div>
             </div>
@@ -34,7 +34,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya Swadaqa</h5>
-                    <p class="card-text">{{ total_swadaqa }}</p>
+                    <p class="card-text">{{ total_swadaqa|floatformat:0|intcomma }} Tsh</p>
                     <a href="{% url 'admin_App:swadaqas' %}" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
                 </div>
             </div>
@@ -43,7 +43,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya mkopo</h5>
-                    <p class="card-text">{{ total_loans }}</p>
+                    <p class="card-text">{{ total_loans|floatformat:0|intcomma }} Tsh</p>
                     <a href="{% url 'admin_App:members_loans' %}" class="btn mt-auto" style="background-color: #D6A2AD">More info</a>
                 </div>
             </div>

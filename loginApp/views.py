@@ -8,6 +8,8 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from .forms import EditInfoForm
 from .models import Profile
+from .forms import PaymentScreenshotForm
+
 
 def generate_unique_username(first_name, last_name):
     base_username = f"{first_name}_{last_name}"
@@ -42,7 +44,6 @@ def register(request):
                     'next_of_kin_phone_number': form.cleaned_data['next_of_kin_phone_number'],
                 }
             )
-            messages.success(request, 'User registered successfully')
 
             password = form.cleaned_data['password1']
             user = authenticate(request, username=user.username, password=password)
@@ -103,3 +104,17 @@ def edit_info(request):
         form = EditInfoForm(instance=user)
         form.fields['phone_number'].initial = profile.phone_number
     return render(request, 'loginApp/edit_info.html', {'form': form})
+
+@login_required(login_url='/account/login/')
+def upload_payment_image(request):
+    if request.method == 'POST':
+        form = PaymentScreenshotForm(request.POST, request.FILES)
+        if form.is_valid():
+            payment_screenshot = form.save(commit=False)
+            payment_screenshot.user = request.user
+            payment_screenshot.save()
+            messages.success(request, 'Image uploaded successfully.')
+            return redirect('login_App:user_dashboard')  # Redirect to user dashboard or another page
+    else:
+        form = PaymentScreenshotForm()
+    return render(request, 'loginApp/upload_payment_image.html', {'form': form})

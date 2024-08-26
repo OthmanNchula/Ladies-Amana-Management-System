@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from mkopoApp.models import Loan, LoanPayment
+from loginApp.models import PaymentScreenshot
 from mtajiApp.models import Mtaji
 from michangoApp.models import Michango
 from swadaqaApp.models import Swadaqa
@@ -103,6 +104,17 @@ def manage_user(request, user_id):
     return render(request, 'adminApp/manage_dashboard.html', context)
 
 @login_required(login_url='/account/login/')
+def view_payment_images(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    payment_images = PaymentScreenshot.objects.filter(user=user).order_by('-uploaded_at')
+    context = {
+        'managed_user': user,
+        'payment_images': payment_images,
+        'show_back_button': True,
+    }
+    return render(request, 'adminApp/view_payment_images.html', context)    
+
+@login_required(login_url='/account/login/')
 def view_member_details(request, user_id):
     member = get_object_or_404(User, id=user_id)
     profile = member.profile  # Assuming you have a Profile model linked to User
@@ -122,17 +134,15 @@ def delete_member(request, user_id):
     return render(request, 'adminApp/members.html', {'users': members, 'show_back_button': False})
 
 # Mtaji
+
 @login_required(login_url='/account/login/')
 def manage_mtaji(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
-    # List of years
     years = [year for year in range(2018, timezone.now().year + 1)]
     current_year = timezone.now().year
+    selected_year = int(request.GET.get('year', current_year))
 
-    selected_year = int(request.GET.get('year', current_year))  # Use the selected year from the request
-
-    # Retrieve the Mtaji for the selected year
     try:
         mtaji_record = Mtaji.objects.get(user=user, year=selected_year)
         current_amount = mtaji_record.amount
@@ -142,13 +152,16 @@ def manage_mtaji(request, user_id):
     if request.method == 'POST':
         amount = request.POST.get('amount_{}'.format(selected_year))
         if amount:
-            Mtaji.objects.update_or_create(
+            mtaji, created = Mtaji.objects.update_or_create(
                 user=user, 
                 year=selected_year,
                 defaults={'amount': amount}
             )
-        return redirect('admin_App:manage_mtaji', user_id=user.id)  # Reload the page with the selected year
-    
+            # Pass the modified_by user (the admin) to the save method
+            mtaji.save(modified_by=request.user)  # Save with the admin user
+
+        return redirect('admin_App:manage_mtaji', user_id=user.id)
+
     context = {
         'managed_user': user,
         'years': years,
@@ -158,8 +171,6 @@ def manage_mtaji(request, user_id):
     }
     
     return render(request, 'adminApp/manage_mtaji.html', context)
-
-
 @login_required
 def mtaji_data(request, user_id, year):
     user = get_object_or_404(User, id=user_id)
@@ -211,16 +222,34 @@ def save_mchango(request, user_id):
     if request.method == 'POST':
         for month in months:
             amount = request.POST.get(f'amount_{month}')
-            month_number = months.index(month) + 1  # Convert month name to month number
-            michango, created = Michango.objects.update_or_create(
-                user=user,
-                year=current_year,
-                month=month_number,
-                defaults={'amount': amount}
-            )
+            if amount:
+                month_number = months.index(month) + 1  # Convert month name to month number
+                michango, created = Michango.objects.update_or_create(
+                    user=user,
+                    year=current_year,
+                    month=month_number,
+                    defaults={'amount': amount}
+                )
+                # Only create a PendingChanges record if the amount has changed
+                if created or michango.amount != int(amount):
+                    michango.save(modified_by=request.user)  # Ensure modified_by is set
+                    # Manually create a PendingChanges record
+                    PendingChanges.objects.create(
+                        admin=request.user,
+                        table_name="Michango",
+                        action="Update" if not created else "Create",
+                        data=json.dumps({
+                            'user': user.username,
+                            'amount': amount,
+                            'year': current_year,
+                            'month': month_number
+                        }),
+                    )
+                
         return redirect('admin_App:manage_mchango', user_id=user.id)
 
     return redirect('admin_App:manage_user', user_id=user.id)
+
 
 @login_required(login_url='/account/login/')
 def manage_swadaqa(request, user_id):
@@ -243,11 +272,13 @@ def manage_swadaqa(request, user_id):
     if request.method == 'POST':
         amount = request.POST.get('amount_{}'.format(selected_year))  # Use selected_year instead of current_year
         if amount:
-            Swadaqa.objects.update_or_create(
+            swadaqa, created = Swadaqa.objects.update_or_create(
                 user=user,
                 year=selected_year,
                 defaults={'amount': amount}
             )
+            # Ensure modified_by is set
+            swadaqa.save(modified_by=request.user)
             return redirect('admin_App:manage_swadaqa', user_id=user_id)
 
     context = {
@@ -258,6 +289,7 @@ def manage_swadaqa(request, user_id):
         'show_back_button': True,
     }
     return render(request, 'adminApp/manage_swadaqa.html', context)
+
 
 
 @login_required
@@ -349,7 +381,7 @@ def process_loan_request(request, user_id):
     return redirect('admin_App:manage_mkopo', user_id=user.id)
 
 
-login_required(login_url='/account/login/')
+@login_required(login_url='/account/login/')
 def loan_payments_view(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
@@ -367,12 +399,13 @@ def loan_payments_view(request, user_id):
         amount = request.POST.get('amount')
         
         # Create or update the payment record
-        LoanPayment.objects.update_or_create(
+        payment, created = LoanPayment.objects.update_or_create(
             loan=current_loan,
             year=year,
             month=month,
             defaults={'amount': amount}
         )
+        payment.save(modified_by=request.user)
         
         messages.success(request, 'Payment recorded successfully.')
         return redirect('admin_App:loan_payments', user_id=user.id)

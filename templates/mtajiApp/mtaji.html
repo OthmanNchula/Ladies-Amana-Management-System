@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div class="container mt-5">
     <!-- Card for Total Mtaji -->
@@ -7,8 +8,7 @@
         <div class="col-md-3">
             <div class="card text-center shadow h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Total Mtaji: {{ total_mtaji|floatformat:0 }} Tsh</h5>
-                    <!-- <p class="card-text">{{ total_mtaji|floatformat:0 }} Tsh</p> -->
+                    <h5 class="card-title">Total Mtaji: {{ total_mtaji|floatformat:0|intcomma }} Tsh</h5>
                 </div>
             </div>
         </div>
@@ -49,7 +49,7 @@
                         </tr>
                         <tr>
                             <td style="font-weight: bold;">TOTAL</td>
-                            <td id="total-amount">0</td>
+                            <td id="total-amount">0 Tsh</td>
                         </tr>
                     </tbody>
                 </table>
@@ -78,8 +78,11 @@
                 fetch(`/mtaji/data/${selectedYear}/`)
                     .then(response => response.json())
                     .then(data => {
-                        amountElement.innerText = data.amount ? data.amount.toLocaleString() : '-';
-                        totalAmountElement.innerText = data.total ? data.total.toLocaleString() : '0';
+                        const formattedAmount = data.amount ? `${parseFloat(data.amount).toLocaleString()} Tsh` : '-';
+                        const formattedTotalAmount = data.total ? `${parseFloat(data.total).toLocaleString()} Tsh` : '0 Tsh';
+                        
+                        amountElement.innerText = formattedAmount;
+                        totalAmountElement.innerText = formattedTotalAmount;
                     });
             });
         });

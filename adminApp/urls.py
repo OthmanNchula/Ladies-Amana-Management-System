@@ -7,6 +7,8 @@ urlpatterns = [
     path('login/', views.admin_login, name='admin_login'),
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('superuser-login/', views.superuser_login_view, name='superuser_login'),
+    path('manage-user/<int:user_id>/view-payments/', views.view_payment_images, name='view_payment_images'),
+
     
     #members
     path('members/', views.members, name='members'),

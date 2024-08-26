@@ -1,5 +1,6 @@
 {% extends 'admin_base.html' %}
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div class="container mt-3">
     <h1 class="text-center">Manage {{ managed_user.username }}'s Swadaqa</h1>
@@ -26,12 +27,12 @@
                             <tr>
                                 <td id="selected-year">{{ current_year }}</td>
                                 <td>
-                                    <input type="text" name="amount_{{ current_year }}" id="amount" class="form-control" value="{{ current_amount }}" />
+                                    <input type="text" name="amount_{{ current_year }}" id="amount" class="form-control" value="{{ current_amount|floatformat:0|intcomma }} Tsh" />
                                 </td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">TOTAL</td>
-                                <td id="total-amount">{{ current_amount }}</td>
+                                <td id="total-amount">{{ current_amount|floatformat:0|intcomma }} Tsh</td>
                             </tr>
                         </tbody>
                     </table>
@@ -48,10 +49,13 @@
         const saveButton = document.getElementById('save-button');
         const originalAmount = amountInput.value;
 
-        // Function to check if the input is modified or not empty
+        function formatAmount(value) {
+            return parseInt(value.replace(/,/g, ''), 10).toLocaleString() + ' Tsh';
+        }
+
         function checkInput() {
-            const amountValue = parseFloat(amountInput.value.replace(/,/g, '')) || 0;
-            totalAmount.innerText = amountValue.toLocaleString();
+            const formattedAmount = formatAmount(amountInput.value);
+            totalAmount.innerText = formattedAmount;
 
             if (amountInput.value !== '' && amountInput.value !== originalAmount) {
                 saveButton.style.display = 'block';
@@ -62,7 +66,9 @@
 
         amountInput.addEventListener('input', checkInput);
 
-        // Initial check to determine the state of the save button
+        // Format the input value initially
+        amountInput.value = formatAmount(amountInput.value);
+
         checkInput();
     });
 </script>

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
+from .models import PaymentScreenshot
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -43,3 +44,12 @@ class EditInfoForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email', 'phone_number', 'first_name', 'last_name', 'nida', 'birth_date', 'next_of_kin_first_name', 'next_of_kin_last_name', 'next_of_kin_phone_number']
+
+
+class PaymentScreenshotForm(forms.ModelForm):
+    class Meta:
+        model = PaymentScreenshot
+        fields = ['image', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter a brief description'}),
+        }

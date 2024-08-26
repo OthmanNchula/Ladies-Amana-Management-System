@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
+
 @receiver(post_save, sender=Mtaji)
 @receiver(post_save, sender=Michango)
 @receiver(post_save, sender=Swadaqa)
@@ -23,9 +24,10 @@ def log_activity_and_pending_change(sender, instance, created, **kwargs):
         'month': str(instance.month) if hasattr(instance, 'month') else '',
     }
 
-    PendingChanges.objects.create(
-        admin=instance.user,
-        table_name=sender.__name__,
-        action=action,
-        data=json.dumps(data),
-    )
+    if instance.modified_by:  # Check if modified_by is set
+        PendingChanges.objects.create(
+            admin=instance.modified_by,  # Use the admin user stored in modified_by
+            table_name=sender.__name__,
+            action=action,
+            data=json.dumps(data, cls=DjangoJSONEncoder),
+        )
