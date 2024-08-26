@@ -224,32 +224,78 @@ def save_mchango(request, user_id):
             amount = request.POST.get(f'amount_{month}')
             if amount:
                 month_number = months.index(month) + 1  # Convert month name to month number
-                michango, created = Michango.objects.update_or_create(
-                    user=user,
-                    year=current_year,
-                    month=month_number,
-                    defaults={'amount': amount}
-                )
-                # Only create a PendingChanges record if the amount has changed
-                if created or michango.amount != int(amount):
-                    michango.save(modified_by=request.user)  # Ensure modified_by is set
-                    # Manually create a PendingChanges record
-                    PendingChanges.objects.create(
+                try:
+                    # Check if there's an existing record for this month and year
+                    michango = Michango.objects.get(user=user, year=current_year, month=month_number)
+                    # Only update if the amount has changed
+                    if michango.amount != int(amount):
+                        michango.amount = int(amount)
+                        michango.save(modified_by=request.user)
+                        # Check if a similar PendingChanges entry already exists
+                        existing_change = PendingChanges.objects.filter(
+                            admin=request.user,
+                            table_name="Michango",
+                            action="Update",
+                            data__contains={'user': user.username, 'year': current_year, 'month': month_number}
+                        ).first()
+                        if existing_change:
+                            # Update the existing PendingChanges entry with the new amount
+                            existing_data = json.loads(existing_change.data)
+                            existing_data['amount'] = amount
+                            existing_change.data = json.dumps(existing_data)
+                            existing_change.save()
+                        else:
+                            # Manually create a new PendingChanges record
+                            PendingChanges.objects.create(
+                                admin=request.user,
+                                table_name="Michango",
+                                action="Update",
+                                data=json.dumps({
+                                    'user': user.username,
+                                    'amount': amount,
+                                    'year': current_year,
+                                    'month': month_number
+                                }),
+                            )
+                except Michango.DoesNotExist:
+                    # Create new record if none exists for this month and year
+                    michango = Michango.objects.create(
+                        user=user,
+                        year=current_year,
+                        month=month_number,
+                        amount=int(amount),
+                        modified_by=request.user
+                    )
+                    # Check if a similar PendingChanges entry already exists
+                    existing_change = PendingChanges.objects.filter(
                         admin=request.user,
                         table_name="Michango",
-                        action="Update" if not created else "Create",
-                        data=json.dumps({
-                            'user': user.username,
-                            'amount': amount,
-                            'year': current_year,
-                            'month': month_number
-                        }),
-                    )
+                        action="Create",
+                        data__contains={'user': user.username, 'year': current_year, 'month': month_number}
+                    ).first()
+                    if existing_change:
+                        # Update the existing PendingChanges entry with the new amount
+                        existing_data = json.loads(existing_change.data)
+                        existing_data['amount'] = amount
+                        existing_change.data = json.dumps(existing_data)
+                        existing_change.save()
+                    else:
+                        # Manually create a new PendingChanges record
+                        PendingChanges.objects.create(
+                            admin=request.user,
+                            table_name="Michango",
+                            action="Create",
+                            data=json.dumps({
+                                'user': user.username,
+                                'amount': amount,
+                                'year': current_year,
+                                'month': month_number
+                            }),
+                        )
                 
         return redirect('admin_App:manage_mchango', user_id=user.id)
 
     return redirect('admin_App:manage_user', user_id=user.id)
-
 
 @login_required(login_url='/account/login/')
 def manage_swadaqa(request, user_id):
