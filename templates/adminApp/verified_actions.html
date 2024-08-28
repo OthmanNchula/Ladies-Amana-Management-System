@@ -21,10 +21,10 @@
                 <td>{{ change.pending_change.action_no }}</td>
                 <td>{{ change.verified_at }}</td>
                 <td>{{ change.pending_change.admin.username }}</td>
-                <td>{{ change.pending_change.data.user }}</td>
+                <td>{{ change.pending_change.data.user }}</td> <!-- Accessing the 'user' field -->
                 <td>{{ change.pending_change.table_name }}</td>
                 <td>{{ change.pending_change.action }}</td>
-                <td>{{ change.pending_change.data.amount }}</td>
+                <td>{{ change.pending_change.data.amount }}</td> <!-- Accessing the 'amount' field -->
                 <td>Approved</td>
             </tr>
             {% endfor %}

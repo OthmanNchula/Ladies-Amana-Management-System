@@ -22,7 +22,7 @@
                 <td>{{ change.action_no }}</td>
                 <td>{{ change.created_at }}</td>
                 <td>{{ change.admin.username }}</td>
-                <td>{{ change.data.user }}</td> <!-- Assuming user is stored in data -->
+                <td>{{ change.data.user }}</td>
                 <td>{{ change.table_name }}</td>
                 <td>{{ change.action }}</td>
                 <td>{{ change.data.amount }}</td>
@@ -38,6 +38,7 @@
                         <button type="submit" class="btn btn-danger">Reject</button>
                     </form>
                 </td>
+                
             </tr>
             {% endfor %}
         </tbody>

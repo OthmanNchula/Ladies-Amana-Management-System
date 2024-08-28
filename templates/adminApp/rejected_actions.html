@@ -17,6 +17,7 @@
         </thead>
         <tbody>
             {% for change in rejected_actions %}
+            {% if change.pending_change %}
             <tr>
                 <td>{{ change.pending_change.action_no }}</td>
                 <td>{{ change.rejected_at }}</td>
@@ -27,6 +28,7 @@
                 <td>{{ change.pending_change.data.amount }}</td>
                 <td>Rejected</td>
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>

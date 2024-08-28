@@ -24,10 +24,12 @@ def log_activity_and_pending_change(sender, instance, created, **kwargs):
         'month': str(instance.month) if hasattr(instance, 'month') else '',
     }
 
-    if instance.modified_by:  # Check if modified_by is set
-        PendingChanges.objects.create(
-            admin=instance.modified_by,  # Use the admin user stored in modified_by
-            table_name=sender.__name__,
-            action=action,
-            data=json.dumps(data, cls=DjangoJSONEncoder),
-        )
+    if instance.modified_by:
+        # Check if a PendingChanges entry already exists
+        if not PendingChanges.objects.filter(admin=instance.modified_by, table_name=sender.__name__, action=action, data=json.dumps(data)).exists():
+            PendingChanges.objects.create(
+                admin=instance.modified_by,
+                table_name=sender.__name__,
+                action=action,
+                data=json.dumps(data, cls=DjangoJSONEncoder),
+            )

@@ -211,45 +211,74 @@ def manage_mchango(request, user_id):
     
     return render(request, 'adminApp/manage_mchango.html', context)
 
+from django.db import transaction, IntegrityError
+from django.db.models import Q
+
 @login_required(login_url='/account/login/')
 def save_mchango(request, user_id):
     user = get_object_or_404(User, id=user_id)
     current_year = int(request.GET.get('year', timezone.now().year))
-    
-    # Define months in Kiswahili
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+    months = ['January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December']
 
     if request.method == 'POST':
-        for month in months:
-            amount = request.POST.get(f'amount_{month}')
-            if amount:
-                month_number = months.index(month) + 1  # Convert month name to month number
-                try:
-                    # Check if there's an existing record for this month and year
-                    michango = Michango.objects.get(user=user, year=current_year, month=month_number)
-                    # Only update if the amount has changed
-                    if michango.amount != int(amount):
-                        michango.amount = int(amount)
-                        michango.save(modified_by=request.user)
-                        # Check if a similar PendingChanges entry already exists
-                        existing_change = PendingChanges.objects.filter(
-                            admin=request.user,
-                            table_name="Michango",
-                            action="Update",
-                            data__contains={'user': user.username, 'year': current_year, 'month': month_number}
-                        ).first()
-                        if existing_change:
-                            # Update the existing PendingChanges entry with the new amount
-                            existing_data = json.loads(existing_change.data)
-                            existing_data['amount'] = amount
-                            existing_change.data = json.dumps(existing_data)
-                            existing_change.save()
-                        else:
-                            # Manually create a new PendingChanges record
+        try:
+            with transaction.atomic():
+                for month in months:
+                    amount = request.POST.get(f'amount_{month}')
+                    if amount:
+                        month_number = months.index(month) + 1
+                        try:
+                            michango = Michango.objects.get(user=user, year=current_year, month=month_number)
+                            if michango.amount != int(amount):
+                                michango.amount = int(amount)
+                                michango.save(modified_by=request.user)
+
+                                # Delete any existing PendingChanges for the same user, year, and month
+                                PendingChanges.objects.filter(
+                                    Q(admin=request.user) &
+                                    Q(table_name="Michango") &
+                                    Q(data__icontains=f'"user": "{user.username}"') &
+                                    Q(data__icontains=f'"year": {current_year}') &
+                                    Q(data__icontains=f'"month": {month_number}')
+                                ).delete()
+
+                                # Create a new PendingChanges record
+                                PendingChanges.objects.create(
+                                    admin=request.user,
+                                    table_name="Michango",
+                                    action="Update",
+                                    data=json.dumps({
+                                        'user': user.username,
+                                        'amount': amount,
+                                        'year': current_year,
+                                        'month': month_number
+                                    }),
+                                )
+                        except Michango.DoesNotExist:
+                            michango = Michango.objects.create(
+                                user=user,
+                                year=current_year,
+                                month=month_number,
+                                amount=int(amount),
+                                modified_by=request.user
+                            )
+
+                            # Delete any existing PendingChanges for the same user, year, and month
+                            PendingChanges.objects.filter(
+                                Q(admin=request.user) &
+                                Q(table_name="Michango") &
+                                Q(data__icontains=f'"user": "{user.username}"') &
+                                Q(data__icontains=f'"year": {current_year}') &
+                                Q(data__icontains=f'"month": {month_number}')
+                            ).delete()
+
+                            # Create a new PendingChanges record
                             PendingChanges.objects.create(
                                 admin=request.user,
                                 table_name="Michango",
-                                action="Update",
+                                action="Create",
                                 data=json.dumps({
                                     'user': user.username,
                                     'amount': amount,
@@ -257,45 +286,15 @@ def save_mchango(request, user_id):
                                     'month': month_number
                                 }),
                             )
-                except Michango.DoesNotExist:
-                    # Create new record if none exists for this month and year
-                    michango = Michango.objects.create(
-                        user=user,
-                        year=current_year,
-                        month=month_number,
-                        amount=int(amount),
-                        modified_by=request.user
-                    )
-                    # Check if a similar PendingChanges entry already exists
-                    existing_change = PendingChanges.objects.filter(
-                        admin=request.user,
-                        table_name="Michango",
-                        action="Create",
-                        data__contains={'user': user.username, 'year': current_year, 'month': month_number}
-                    ).first()
-                    if existing_change:
-                        # Update the existing PendingChanges entry with the new amount
-                        existing_data = json.loads(existing_change.data)
-                        existing_data['amount'] = amount
-                        existing_change.data = json.dumps(existing_data)
-                        existing_change.save()
-                    else:
-                        # Manually create a new PendingChanges record
-                        PendingChanges.objects.create(
-                            admin=request.user,
-                            table_name="Michango",
-                            action="Create",
-                            data=json.dumps({
-                                'user': user.username,
-                                'amount': amount,
-                                'year': current_year,
-                                'month': month_number
-                            }),
-                        )
-                
+        except IntegrityError:
+            # Handle any integrity errors during the transaction
+            messages.error(request, "An error occurred while saving changes. Please try again.")
+            return redirect('admin_App:manage_user', user_id=user.id)
+
         return redirect('admin_App:manage_mchango', user_id=user.id)
 
     return redirect('admin_App:manage_user', user_id=user.id)
+
 
 @login_required(login_url='/account/login/')
 def manage_swadaqa(request, user_id):
@@ -661,14 +660,22 @@ def verification(request):
         # If the user is not 'admin1', deny access and redirect to the admin dashboard.
         messages.error(request, 'Access denied.')
         return redirect('admin_App:admin_dashboard')
+    
 
 @login_required(login_url='/account/login/')
 def approve_change(request, change_id):
     if request.user.username == 'admin1':
-        pending_change = get_object_or_404(PendingChanges, id=change_id)
+        pending_change = get_object_or_404(PendingChanges, action_no=change_id)
         pending_change.is_approved = True
         pending_change.approved_by = request.user
         pending_change.save()
+
+        # Ensure the data is parsed as a dictionary
+        if isinstance(pending_change.data, str):
+            pending_change.data = json.loads(pending_change.data)
+
+        # Debugging: Print the data to the console
+        print("Pending Change Data:", pending_change.data)
 
         # Store the approved change in VerifiedChanges
         VerifiedChanges.objects.create(pending_change=pending_change)
@@ -683,42 +690,162 @@ def approve_change(request, change_id):
         )
 
         messages.success(request, 'Change approved successfully.')
+
     return redirect('admin_App:verification')
+
+def revert_mtaji_change(pending_change):
+    # Extract the data from the pending change
+    data = pending_change.data
+    user = User.objects.get(username=data['user'])
+    year = data.get('year')
+    
+    # Revert the change
+    if pending_change.action == 'Create':
+        # If it was a creation, delete the record
+        Mtaji.objects.filter(user=user, year=year).delete()
+    elif pending_change.action == 'Update':
+        # If it was an update, revert to the previous value if available
+        original_amount = data.get('original_amount', 0)
+        Mtaji.objects.filter(user=user, year=year).update(amount=original_amount)
+        
+def revert_michango_change(pending_change):
+    # Extract the data from the pending change
+    data = pending_change.data
+    user = User.objects.get(username=data['user'])
+    year = data.get('year')
+    month = data.get('month')
+    
+    # Revert the change
+    if pending_change.action == 'Create':
+        # If it was a creation, delete the record
+        Michango.objects.filter(user=user, year=year, month=month).delete()
+    elif pending_change.action == 'Update':
+        # If it was an update, revert to the previous value if available
+        original_amount = data.get('original_amount', 0)
+        Michango.objects.filter(user=user, year=year, month=month).update(amount=original_amount)
+        
+        
+def revert_swadaqa_change(pending_change):
+    # Extract the data from the pending change
+    data = pending_change.data
+    user = User.objects.get(username=data['user'])
+    year = data.get('year')
+    
+    # Revert the change
+    if pending_change.action == 'Create':
+        # If it was a creation, delete the record
+        Swadaqa.objects.filter(user=user, year=year).delete()
+    elif pending_change.action == 'Update':
+        # If it was an update, revert to the previous value if available
+        original_amount = data.get('original_amount', 0)
+        Swadaqa.objects.filter(user=user, year=year).update(amount=original_amount)
+
+
+def revert_loan_change(pending_change):
+    # Extract the data from the pending change
+    data = pending_change.data
+    user = User.objects.get(username=data['user'])
+    loan_id = data.get('loan_id')  # Assuming loan_id is stored in the data
+    
+    # Revert the change
+    if pending_change.action == 'Create':
+        # If it was a creation, delete the loan record
+        Loan.objects.filter(id=loan_id, user=user).delete()
+    elif pending_change.action == 'Update':
+        # If it was an update, revert to the previous status or details if available
+        original_status = data.get('original_status', 'Pending')
+        Loan.objects.filter(id=loan_id, user=user).update(status=original_status)
+
+
+
+from django.db import transaction
 
 @login_required(login_url='/account/login/')
 def reject_change(request, change_id):
     if request.user.username == 'admin1':
-        pending_change = get_object_or_404(PendingChanges, id=change_id)
+        try:
+            with transaction.atomic():
+                # Fetch the pending change based on action_no
+                pending_change = get_object_or_404(PendingChanges, action_no=change_id)
 
-        # Store the rejected change in RejectedChanges
-        RejectedChanges.objects.create(pending_change=pending_change)
+                # Parse the data if stored as a string
+                if isinstance(pending_change.data, str):
+                    pending_change.data = json.loads(pending_change.data)
 
-        # Log the rejection action in ActivityLog
-        ActivityLog.objects.create(
-            admin=request.user,
-            action=f"Rejected {pending_change.action}",
-            affected_user=pending_change.data.get('user'),
-            amount=pending_change.data.get('amount'),
-            details=f"Rejected changes to {pending_change.table_name}"
-        )
+                # Revert the changes based on the table_name and action
+                if pending_change.table_name == "Mtaji":
+                    revert_mtaji_change(pending_change)
+                elif pending_change.table_name == "Michango":
+                    revert_michango_change(pending_change)
+                elif pending_change.table_name == "Swadaqa":
+                    revert_swadaqa_change(pending_change)
+                elif pending_change.table_name == "Loan":
+                    revert_loan_change(pending_change)
 
-        # Delete the pending change after rejection
-        pending_change.delete()
+                # Store the rejected change in RejectedChanges
+                rejected_change = RejectedChanges.objects.create(pending_change=pending_change)
 
-        messages.success(request, 'Change rejected successfully.')
+                # Log the rejection action in ActivityLog
+                ActivityLog.objects.create(
+                    admin=request.user,
+                    action=f"Rejected {pending_change.action}",
+                    affected_user=pending_change.data.get('user'),
+                    amount=pending_change.data.get('amount'),
+                    details=f"Rejected changes to {pending_change.table_name}"
+                )
+
+                # Now delete the pending change after rejection has been logged
+                pending_change.delete()
+
+            messages.success(request, 'Change rejected successfully.')
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            messages.error(request, f"An error occurred while rejecting the change: {e}")
+
     return redirect('admin_App:verification')
+
+
+
+
 
 @login_required(login_url='/account/login/')
 def verified_actions(request):
-    # Fetch only actions that were logged when a change was approved
-    verified_actions = ActivityLog.objects.filter(action__icontains='Approved').order_by('-timestamp')
-    return render(request, 'adminApp/verified_actions.html', {'verified_actions': verified_actions})
+    if request.user.username == 'admin1':
+        # Fetch all verified changes, ordered by the latest verified date.
+        verified_changes = VerifiedChanges.objects.select_related('pending_change').order_by('-verified_at')
+
+        # Parse the data in each verified change
+        for change in verified_changes:
+            if isinstance(change.pending_change.data, str):
+                change.pending_change.data = json.loads(change.pending_change.data)
+
+        # Render the verified actions page with the verified changes.
+        return render(request, 'adminApp/verified_actions.html', {'verified_actions': verified_changes})
+    else:
+        # If the user is not 'admin1', deny access and redirect to the admin dashboard.
+        messages.error(request, 'Access denied.')
+        return redirect('admin_App:admin_dashboard')
+    
 
 @login_required(login_url='/account/login/')
 def rejected_actions(request):
-    # Fetch only actions that were logged when a change was rejected
-    rejected_actions = ActivityLog.objects.filter(action__icontains='Rejected').order_by('-timestamp')
-    return render(request, 'adminApp/rejected_actions.html', {'rejected_actions': rejected_actions})
+    if request.user.username == 'admin1':
+        # Retrieve all rejected actions where pending_change is not None, ordered by the latest rejected date.
+        rejected_actions = RejectedChanges.objects.filter(pending_change__isnull=False).select_related('pending_change').order_by('-rejected_at')
+
+        # Parse the data in each rejected change
+        for change in rejected_actions:
+            if isinstance(change.pending_change.data, str):
+                change.pending_change.data = json.loads(change.pending_change.data)
+
+        # Render the rejected actions page with the rejected changes.
+        return render(request, 'adminApp/rejected_actions.html', {'rejected_actions': rejected_actions})
+    else:
+        # If the user is not 'admin1', deny access and redirect to the admin dashboard.
+        messages.error(request, 'Access denied.')
+        return redirect('admin_App:admin_dashboard')
+
 
 
 # mengineyo

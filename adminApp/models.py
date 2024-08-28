@@ -23,6 +23,7 @@ class ActivityLog(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     timestamp = models.DateTimeField(default=timezone.now)
     details = models.TextField()
+    
 
     def __str__(self):
         return f"{self.admin.username} - {self.action} at {self.timestamp}"
