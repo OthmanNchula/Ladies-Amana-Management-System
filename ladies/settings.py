@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap4",
     "rest_framework",
+    "django_crontab",
 ]
 
 MIDDLEWARE = [
@@ -137,27 +138,50 @@ LOGIN_REDIRECT_URL = 'login_App:login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        # You can add your app-specific logger here as well
-        'adminApp': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': 'debug.log',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         # You can add your app-specific logger here as well
+#         'adminApp': {
+#             'handlers': ['file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
+
+# Crontab configuration for automatic report generation
+CRONJOBS = [
+    # Generate and send monthly report on the last day of each month at 11:59 PM
+    ('59 23 28-31 * *', 'django.core.management.call_command', ['generate_reports'], {
+        'schedule': 'monthly',
+        'day_of_month': '28-31',
+    }),
+
+    # Generate and send bi-annual report on the last day of June and December at 11:59 PM
+    ('59 23 30 6,12 *', 'django.core.management.call_command', ['generate_reports'], {
+        'schedule': 'biannual',
+    }),
+]
+
+# Additional configurations for email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'your.smtp.server'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'othmanjmal07@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-password'
+DEFAULT_FROM_EMAIL = 'othmanjmal07@gmail.com'

@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from datetime import datetime
+    
 
 class PendingChanges(models.Model):
     action_no = models.AutoField(primary_key=True)
@@ -42,3 +44,21 @@ class RejectedChanges(models.Model):
 
     def __str__(self):
         return f"Rejected {self.pending_change}"
+
+class MonthlyReport(models.Model):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    file_path = models.CharField(max_length=255)
+
+    def get_month_display(self):
+        return datetime(year=self.year, month=self.month, day=1).strftime('%B')
+
+    def __str__(self):
+        return f"{self.get_month_display()} {self.year}"
+
+class YearlyReport(models.Model):
+    year = models.IntegerField()
+    file_path = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.year}"

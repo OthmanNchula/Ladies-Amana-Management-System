@@ -1,0 +1,44 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-3">
+    <h1 class="text-center">Yearly Report - {{ report.year }}</h1>
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>S/N</th>
+                            <th>JINA</th>
+                            <th>MTAJI</th>
+                            <th>SWADAQA</th>
+                            <th>Total Michango</th>
+                            <th>Total Swadaqa</th>
+                            <!-- Add more columns if needed -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in report_data %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ entry.name }}</td>
+                                <td>{{ entry.mtaji }}</td>
+                                <td>{{ entry.swadaqa }}</td>
+                                <td>{{ entry.total_michango }}</td>
+                                <td>{{ entry.total_swadaqa }}</td>
+                                <!-- Add more data if needed -->
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No data found for this report.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

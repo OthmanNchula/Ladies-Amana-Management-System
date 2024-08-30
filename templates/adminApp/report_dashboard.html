@@ -1,0 +1,41 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-3">
+    <h1 class="text-center">Report Dashboard</h1>
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <h2>Monthly Reports</h2>
+            <ul class="list-group">
+                {% for report in monthly_reports %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ report.month }} {{ report.year }}
+                        <span>
+                            <a href="{% url 'admin_App:view_monthly_report' report.id %}" class="btn btn-primary btn-sm">View</a>
+                            <a href="{% url 'admin_App:download_monthly_report' report.id %}" class="btn btn-success btn-sm">Download</a>
+                        </span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center">No monthly reports available.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h2>Yearly Reports</h2>
+            <ul class="list-group">
+                {% for report in yearly_reports %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ report.year }}
+                        <span>
+                            <a href="{% url 'admin_App:view_yearly_report' report.id %}" class="btn btn-primary btn-sm">View</a>
+                            <a href="{% url 'admin_App:download_yearly_report' report.id %}" class="btn btn-success btn-sm">Download</a>
+                        </span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center">No yearly reports available.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

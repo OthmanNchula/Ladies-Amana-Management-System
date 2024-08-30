@@ -16,6 +16,11 @@ from django.db.models import Sum, Case, When, Value, DecimalField
 from django.contrib.auth import get_user_model
 from adminApp.models import PendingChanges, ActivityLog, VerifiedChanges, RejectedChanges
 from django.utils import timezone
+import openpyxl
+from django.http import HttpResponse
+from django.utils.timezone import now
+from .models import MonthlyReport, YearlyReport
+import os
 
 
 def admin_login(request):
@@ -235,29 +240,8 @@ def save_mchango(request, user_id):
                                 michango.amount = int(amount)
                                 michango.save(modified_by=request.user)
 
-                                # Delete any existing PendingChanges for the same user, year, and month
-                                PendingChanges.objects.filter(
-                                    Q(admin=request.user) &
-                                    Q(table_name="Michango") &
-                                    Q(data__icontains=f'"user": "{user.username}"') &
-                                    Q(data__icontains=f'"year": {current_year}') &
-                                    Q(data__icontains=f'"month": {month_number}')
-                                ).delete()
-
-                                # Create a new PendingChanges record
-                                PendingChanges.objects.create(
-                                    admin=request.user,
-                                    table_name="Michango",
-                                    action="Update",
-                                    data=json.dumps({
-                                        'user': user.username,
-                                        'amount': amount,
-                                        'year': current_year,
-                                        'month': month_number
-                                    }),
-                                )
                         except Michango.DoesNotExist:
-                            michango = Michango.objects.create(
+                            Michango.objects.create(
                                 user=user,
                                 year=current_year,
                                 month=month_number,
@@ -265,27 +249,6 @@ def save_mchango(request, user_id):
                                 modified_by=request.user
                             )
 
-                            # Delete any existing PendingChanges for the same user, year, and month
-                            PendingChanges.objects.filter(
-                                Q(admin=request.user) &
-                                Q(table_name="Michango") &
-                                Q(data__icontains=f'"user": "{user.username}"') &
-                                Q(data__icontains=f'"year": {current_year}') &
-                                Q(data__icontains=f'"month": {month_number}')
-                            ).delete()
-
-                            # Create a new PendingChanges record
-                            PendingChanges.objects.create(
-                                admin=request.user,
-                                table_name="Michango",
-                                action="Create",
-                                data=json.dumps({
-                                    'user': user.username,
-                                    'amount': amount,
-                                    'year': current_year,
-                                    'month': month_number
-                                }),
-                            )
         except IntegrityError:
             # Handle any integrity errors during the transaction
             messages.error(request, "An error occurred while saving changes. Please try again.")
@@ -845,11 +808,73 @@ def rejected_actions(request):
         # If the user is not 'admin1', deny access and redirect to the admin dashboard.
         messages.error(request, 'Access denied.')
         return redirect('admin_App:admin_dashboard')
-
-
-
-# mengineyo
-@login_required(login_url='/account/login/')
-def mengineyo(request):
     
-    return render(request, 'adminApp/mengineyo.html')
+@login_required(login_url='/account/login/')
+def report_dashboard(request):
+    # Retrieve and order reports
+    monthly_reports = MonthlyReport.objects.all().order_by('-year', '-month')
+    yearly_reports = YearlyReport.objects.all().order_by('-year')
+    
+    context = {
+        'monthly_reports': monthly_reports,
+        'yearly_reports': yearly_reports,
+    }
+    return render(request, 'adminApp/report_dashboard.html', context)
+
+@login_required(login_url='/account/login/')
+def view_monthly_report(request, id):
+    report = get_object_or_404(MonthlyReport, id=id)
+    filepath = report.file_path
+
+    # Load the Excel workbook and active sheet
+    wb = openpyxl.load_workbook(filepath)
+    ws = wb.active
+
+    # Extract data from the sheet
+    report_data = list(ws.iter_rows(values_only=True))
+
+    context = {
+        'report_data': report_data[1:],  # Skip headers
+        'headers': report_data[0],       # The first row is the header
+        'report': report,
+    }
+
+    return render(request, 'adminApp/view_monthly_report.html', context)
+
+@login_required(login_url='/account/login/')
+def view_yearly_report(request, id):
+    report = get_object_or_404(YearlyReport, id=id)
+    filepath = report.file_path
+
+    # Load the Excel workbook and active sheet
+    wb = openpyxl.load_workbook(filepath)
+    ws = wb.active
+
+    # Extract data from the sheet
+    report_data = list(ws.iter_rows(values_only=True))
+
+    context = {
+        'report_data': report_data[1:],  # Skip headers
+        'headers': report_data[0],       # The first row is the header
+        'report': report,
+    }
+
+    return render(request, 'adminApp/view_yearly_report.html', context)
+
+@login_required(login_url='/account/login/')
+def download_monthly_report(request, id):
+    report = get_object_or_404(MonthlyReport, id=id)
+    filepath = report.file_path
+    with open(filepath, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={os.path.basename(filepath)}'
+        return response
+
+@login_required(login_url='/account/login/')
+def download_yearly_report(request, id):
+    report = get_object_or_404(YearlyReport, id=id)
+    filepath = report.file_path
+    with open(filepath, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename={os.path.basename(filepath)}'
+        return response

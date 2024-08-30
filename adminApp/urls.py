@@ -51,9 +51,11 @@ urlpatterns = [
     path('reject/<int:change_id>/', views.reject_change, name='reject_change'),
     path('verified_actions/', views.verified_actions, name='verified_actions'),
     path('rejected_actions/', views.rejected_actions, name='rejected_actions'),
-
     
-    # mengineyo urls
-    path('mengineyo/', views.mengineyo, name='mengineyo'),
-    
+    # report
+    path('reports/', views.report_dashboard, name='report_dashboard'),
+    path('reports/monthly/<int:id>/view/', views.view_monthly_report, name='view_monthly_report'),
+    path('reports/monthly/<int:id>/download/', views.download_monthly_report, name='download_monthly_report'),
+    path('reports/yearly/<int:id>/view/', views.view_yearly_report, name='view_yearly_report'),
+    path('reports/yearly/<int:id>/download/', views.download_yearly_report, name='download_yearly_report'),
 ]
