@@ -11,7 +11,7 @@
         <a class="nav-link text-black" href="javascript:void(0);" onclick="showSection('historia')" id="historia-tab">Historia ya Mikopo</a>
         <a class="nav-link text-black" href="javascript:void(0);" onclick="showSection('malipo')" id="malipo-tab">Malipo ya Mkopo</a>
     </div>
-    
+
     <!-- Loan Request Status Section -->
     <div id="maombi" class="mt-4">
         <div class="d-flex justify-content-center mb-3">
@@ -84,22 +84,22 @@
                             <th>Kiasi cha Malipo (Tsh)</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="payment-records">
                         {% for payment in loan_payments %}
                             <tr>
                                 <td>{{ payment.year }}</td>
                                 <td>{{ payment.month }}</td>
-                                <td>{{ payment.amount|intcomma }}</td>
+                                <td>{{ payment.amount|intcomma }}/=</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
             <div class="text-center mt-4">
-                <form method="post" action="{% url 'admin_App:loan_payments' managed_user.id %}">
+                <form method="post" action="{% url 'admin_App:loan_payments' managed_user.id %}" id="loan-payment-form">
                     {% csrf_token %}
                     <input type="number" name="year" placeholder="Year" class="form-control mb-2" required>
-                    <input type="text" name="month" placeholder="Month" class="form-control mb-2" required>
+                    <input type="number" name="month" placeholder="Month" class="form-control mb-2" required min="1" max="12">
                     <input type="number" name="amount" placeholder="Payment Amount" class="form-control mb-2" required>
                     <button type="submit" class="btn btn-success">Loan Payment</button>
                 </form>
@@ -125,6 +125,43 @@
         // Add active class to the selected tab
         document.getElementById(section + '-tab').classList.add('active', 'bg-white');
     }
+
+    document.getElementById('loan-payment-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+        const url = form.action;
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const paymentRecords = document.getElementById('payment-records');
+                
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${data.payment.year}</td>
+                    <td>${data.payment.month}</td>
+                    <td>${data.payment.amount}</td>
+                `;
+                
+                paymentRecords.appendChild(newRow);
+                form.reset();
+                alert(data.success);
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
 </script>
 
 <style>

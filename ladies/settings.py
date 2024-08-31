@@ -163,19 +163,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #     },
 # }
 
-# Crontab configuration for automatic report generation
-CRONJOBS = [
-    # Generate and send monthly report on the last day of each month at 11:59 PM
-    ('59 23 28-31 * *', 'django.core.management.call_command', ['generate_reports'], {
-        'schedule': 'monthly',
-        'day_of_month': '28-31',
-    }),
+# # Crontab configuration for automatic report generation
+# CRONJOBS = [
+#     # Generate and send monthly report on the last day of each month at 11:59 PM
+#     ('59 23 28-31 * *', 'django.core.management.call_command', ['generate_reports'], {
+#         'schedule': 'monthly',
+#         'day_of_month': '28-31',
+#     }),
 
-    # Generate and send bi-annual report on the last day of June and December at 11:59 PM
-    ('59 23 30 6,12 *', 'django.core.management.call_command', ['generate_reports'], {
-        'schedule': 'biannual',
-    }),
-]
+#     # Generate and send bi-annual report on the last day of June and December at 11:59 PM
+#     ('59 23 30 6,12 *', 'django.core.management.call_command', ['generate_reports'], {
+#         'schedule': 'biannual',
+#     }),
+# ]
 
 # Additional configurations for email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

@@ -2,34 +2,34 @@
 {% load static %}
 {% block content %}
 <div class="container mt-3">
-        <!-- Display Cards -->
-        <div class="row mb-3 text-center">
-            <div class="col-md-4">
-                <div class="card text-center shadow h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Loan Amount</h5>
-                        <p class="card-text">{{ total_loan_amount|floatformat:0 }} Tsh</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center shadow h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Payment to Date</h5>
-                        <p class="card-text">{{ total_payment_to_date|floatformat:0 }} Tsh</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-center shadow h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Remaining Amount</h5>
-                        <p class="card-text">{{ total_remaining|floatformat:0 }} Tsh</p>
-                    </div>
+    <!-- Display Cards -->
+    <div class="row mb-3 text-center">
+        <div class="col-md-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Loan Amount</h5>
+                    <p class="card-text">{{ total_loan_amount|floatformat:0 }} Tsh</p>
                 </div>
             </div>
         </div>
-    
+        <div class="col-md-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Payment to Date</h5>
+                    <p class="card-text">{{ total_payment_to_date|floatformat:0 }} Tsh</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center shadow h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Remaining Amount</h5>
+                    <p class="card-text">{{ total_remaining|floatformat:0 }} Tsh</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Horizontal Navbar -->
     <div class="row justify-content-center">
         <div class="col-auto">
@@ -130,12 +130,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for gharama in gharama_za_mikopo %}
                             <tr>
-                                <td>{{ gharama.mkopo }}</td>
-                                <td>{{ gharama.gharama }}</td>
+                                <td>{{ total_loan_amount|floatformat:0 }} Tsh</td>
+                                <td>{{ gharama_za_mikopo|floatformat:0 }} Tsh</td>
                             </tr>
-                            {% endfor %}
                         </tbody>
                     </table>
                 </div>

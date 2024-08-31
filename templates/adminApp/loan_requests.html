@@ -24,8 +24,12 @@
                                 <td>{{ loan.date }}</td>
                                 <td>{{ loan.status }}</td>
                                 <td>
-                                    <a href="{% url 'admin_App:approve_loan' loan.id %}" class="btn btn-success">Approve</a>
-                                    <a href="{% url 'admin_App:reject_loan' loan.id %}" class="btn btn-danger">Reject</a>
+                                    {% if loan.status == 'Pending' %}
+                                        <a href="{% url 'admin_App:approve_loan' loan.id %}" class="btn btn-success">Approve</a>
+                                        <a href="{% url 'admin_App:reject_loan' loan.id %}" class="btn btn-danger">Reject</a>
+                                    {% elif loan.status == 'Pending Verification' %}
+                                        <span class="badge badge-warning">Pending Verification</span>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% empty %}

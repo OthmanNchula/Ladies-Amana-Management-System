@@ -21,6 +21,10 @@ from django.http import HttpResponse
 from django.utils.timezone import now
 from .models import MonthlyReport, YearlyReport
 import os
+from django.core.serializers.json import DjangoJSONEncoder
+import json
+from decimal import Decimal
+
 
 
 def admin_login(request):
@@ -336,18 +340,7 @@ def manage_mkopo(request, user_id):
     loan_history = Loan.objects.filter(user=user).exclude(status='Pending')
 
     # Step 5: Loan Payments
-    loan_payments = []
-    if current_loan:
-        start_date = current_loan.date + timedelta(days=30)  # Payment starts 1 month after approval
-        for i in range(36):  # 36 payments for 36 months
-            payment_year = start_date.year + (start_date.month + i - 1) // 12
-            payment_month = (start_date.month + i - 1) % 12 + 1
-            payment = LoanPayment.objects.filter(loan=current_loan, year=payment_year, month=payment_month).first()
-            loan_payments.append({
-                'year': payment_year,
-                'month': payment_month,
-                'amount': payment.amount if payment else 0
-            })
+    loan_payments = LoanPayment.objects.filter(loan=current_loan).order_by('year', 'month') if current_loan else []
 
     context = {
         'managed_user': user,
@@ -376,18 +369,33 @@ def process_loan_request(request, user_id):
         if loan_requests.exists():
             # Process each loan request (if more than one, process each or decide on other logic)
             for loan_request in loan_requests:
-                if decision == 'accept':
-                    # Accept the loan request
-                    loan_request.status = 'Approved'
-                    loan_request.date = timezone.now()  # Update the date to the approval date
-                    loan_request.save()
-                elif decision == 'reject':
-                    # Reject the loan request
-                    loan_request.status = 'Rejected'
-                    loan_request.save()
+                # Change loan status to 'Pending Verification'
+                loan_request.status = 'Pending Verification'
+                loan_request.save()
+
+                # Prepare the data to be logged
+                data = {
+                    'user': loan_request.user.username,
+                    'loan_id': loan_request.id,
+                    'original_status': 'Pending',
+                    'new_status': 'Approved' if decision == 'accept' else 'Rejected',
+                }
+
+                # Create a PendingChanges entry for verification
+                if not PendingChanges.objects.filter(
+                    admin=request.user,
+                    table_name='Loan',
+                    action='Update',
+                    data=json.dumps(data, cls=DjangoJSONEncoder)
+                ).exists():
+                    PendingChanges.objects.create(
+                        admin=request.user,
+                        table_name='Loan',
+                        action='Update',
+                        data=json.dumps(data, cls=DjangoJSONEncoder)
+                    )
 
     return redirect('admin_App:manage_mkopo', user_id=user.id)
-
 
 @login_required(login_url='/account/login/')
 def loan_payments_view(request, user_id):
@@ -397,37 +405,40 @@ def loan_payments_view(request, user_id):
     current_loan = Loan.objects.filter(user=user, status='Approved').order_by('-date').first()
 
     if not current_loan:
-        # Handle case where no approved loans are found
-        messages.error(request, 'No approved loans found for this user.')
-        return redirect('admin_App:manage_mkopo', user_id=user.id)
+        return JsonResponse({'error': 'No approved loans found for this user.'}, status=400)
+
+    total_paid = LoanPayment.objects.filter(loan=current_loan).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
 
     if request.method == 'POST':
         year = request.POST.get('year')
         month = request.POST.get('month')
-        amount = request.POST.get('amount')
-        
+        date = request.POST.get('date')
+        amount = Decimal(request.POST.get('amount'))
+
+        if total_paid + amount > current_loan.amount:
+            return JsonResponse({'error': 'Total payments cannot exceed the loan amount.'}, status=400)
+
         # Create or update the payment record
         payment, created = LoanPayment.objects.update_or_create(
             loan=current_loan,
             year=year,
             month=month,
-            defaults={'amount': amount}
+            defaults={'amount': amount, 'date': date, 'modified_by': request.user}
         )
-        payment.save(modified_by=request.user)
-        
-        messages.success(request, 'Payment recorded successfully.')
-        return redirect('admin_App:loan_payments', user_id=user.id)
 
-    # Prepare payment schedule
-    payments_schedule = LoanPayment.objects.filter(loan=current_loan).order_by('year', 'month')
+        # Prepare the payment data for returning as JSON
+        payment_data = {
+            'year': payment.year,
+            'month': payment.get_month_display(),  # Assuming month is stored as an integer field
+            'date': payment.date.strftime('%B %d, %Y'),  # Format date for display
+            'amount': "{:,.0f}/=".format(payment.amount)
+        }
 
-    context = {
-        'user': user,
-        'current_loan': current_loan,
-        'payments': payments_schedule,
-    }
-    
-    return render(request, 'adminApp/loan_payments.html', context)
+        total_paid += amount
+
+        return JsonResponse({'success': 'Payment recorded successfully.', 'payment': payment_data, 'total_paid': "{:,.0f}/=".format(total_paid)})
+
+    return JsonResponse({'error': 'Invalid request.'}, status=400)
 
 
 @login_required(login_url='/account/login/')
@@ -591,18 +602,72 @@ def rejected_loans(request):
 @login_required(login_url='/account/login/')
 def approve_loan(request, loan_id):
     loan = get_object_or_404(Loan, id=loan_id)
-    loan.status = 'Approved'
+
+    # Change loan status to 'Pending Verification'
+    loan.status = 'Pending Verification'
     loan.save()
-    messages.success(request, 'Loan approved successfully.')
+
+    # Prepare the data to be logged
+    data = {
+        'user': loan.user.username,
+        'loan_id': loan.id,
+        'amount': str(loan.amount),  # Add the loan amount here
+        'original_status': 'Pending',
+        'new_status': 'Approved',
+    }
+
+    # Create a PendingChanges entry for verification
+    if not PendingChanges.objects.filter(
+        admin=request.user,
+        table_name='Loan',
+        action='Update',
+        data=json.dumps(data, cls=DjangoJSONEncoder)
+    ).exists():
+        PendingChanges.objects.create(
+            admin=request.user,
+            table_name='Loan',
+            action='Update',
+            data=json.dumps(data, cls=DjangoJSONEncoder)
+        )
+
+    messages.success(request, 'Loan approval submitted for verification.')
     return redirect('admin_App:loan_requests')
+
 
 @login_required(login_url='/account/login/')
 def reject_loan(request, loan_id):
     loan = get_object_or_404(Loan, id=loan_id)
-    loan.status = 'Rejected'
+
+    # Change loan status to 'Pending Verification'
+    loan.status = 'Pending Verification'
     loan.save()
-    messages.success(request, 'Loan rejected successfully.')
+
+    # Prepare the data to be logged
+    data = {
+        'user': loan.user.username,
+        'loan_id': loan.id,
+        'amount': str(loan.amount),  # Add the loan amount here
+        'original_status': 'Pending',
+        'new_status': 'Rejected',
+    }
+
+    # Create a PendingChanges entry for verification
+    if not PendingChanges.objects.filter(
+        admin=request.user,
+        table_name='Loan',
+        action='Update',
+        data=json.dumps(data, cls=DjangoJSONEncoder)
+    ).exists():
+        PendingChanges.objects.create(
+            admin=request.user,
+            table_name='Loan',
+            action='Update',
+            data=json.dumps(data, cls=DjangoJSONEncoder)
+        )
+
+    messages.success(request, 'Loan rejection submitted for verification.')
     return redirect('admin_App:loan_requests')
+
 
 import json
 # verification for admin1
@@ -637,8 +702,10 @@ def approve_change(request, change_id):
         if isinstance(pending_change.data, str):
             pending_change.data = json.loads(pending_change.data)
 
-        # Debugging: Print the data to the console
-        print("Pending Change Data:", pending_change.data)
+        # Apply the change to the Loan object
+        loan = get_object_or_404(Loan, id=pending_change.data.get('loan_id'))
+        loan.status = pending_change.data.get('new_status')
+        loan.save()
 
         # Store the approved change in VerifiedChanges
         VerifiedChanges.objects.create(pending_change=pending_change)
@@ -655,6 +722,7 @@ def approve_change(request, change_id):
         messages.success(request, 'Change approved successfully.')
 
     return redirect('admin_App:verification')
+
 
 def revert_mtaji_change(pending_change):
     # Extract the data from the pending change
@@ -708,17 +776,16 @@ def revert_loan_change(pending_change):
     # Extract the data from the pending change
     data = pending_change.data
     user = User.objects.get(username=data['user'])
-    loan_id = data.get('loan_id')  # Assuming loan_id is stored in the data
-    
+    loan_id = data.get('loan_id')
+
     # Revert the change
     if pending_change.action == 'Create':
         # If it was a creation, delete the loan record
         Loan.objects.filter(id=loan_id, user=user).delete()
     elif pending_change.action == 'Update':
-        # If it was an update, revert to the previous status or details if available
+        # If it was an update, revert to the previous status if available
         original_status = data.get('original_status', 'Pending')
         Loan.objects.filter(id=loan_id, user=user).update(status=original_status)
-
 
 
 from django.db import transaction
@@ -728,22 +795,16 @@ def reject_change(request, change_id):
     if request.user.username == 'admin1':
         try:
             with transaction.atomic():
-                # Fetch the pending change based on action_no
                 pending_change = get_object_or_404(PendingChanges, action_no=change_id)
 
-                # Parse the data if stored as a string
+                # Ensure the data is parsed as a dictionary
                 if isinstance(pending_change.data, str):
                     pending_change.data = json.loads(pending_change.data)
 
-                # Revert the changes based on the table_name and action
-                if pending_change.table_name == "Mtaji":
-                    revert_mtaji_change(pending_change)
-                elif pending_change.table_name == "Michango":
-                    revert_michango_change(pending_change)
-                elif pending_change.table_name == "Swadaqa":
-                    revert_swadaqa_change(pending_change)
-                elif pending_change.table_name == "Loan":
-                    revert_loan_change(pending_change)
+                # Revert the loan to its original status
+                loan = get_object_or_404(Loan, id=pending_change.data.get('loan_id'))
+                loan.status = pending_change.data.get('original_status')
+                loan.save()
 
                 # Store the rejected change in RejectedChanges
                 rejected_change = RejectedChanges.objects.create(pending_change=pending_change)
@@ -767,10 +828,6 @@ def reject_change(request, change_id):
             messages.error(request, f"An error occurred while rejecting the change: {e}")
 
     return redirect('admin_App:verification')
-
-
-
-
 
 @login_required(login_url='/account/login/')
 def verified_actions(request):

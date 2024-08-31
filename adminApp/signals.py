@@ -23,6 +23,13 @@ def log_activity_and_pending_change(sender, instance, created, **kwargs):
         'year': str(instance.year) if hasattr(instance, 'year') else '',
         'month': str(instance.month) if hasattr(instance, 'month') else '',
     }
+    
+    # Additional logic specific to Loan
+    if isinstance(instance, Loan):
+        data['loan_id'] = instance.id
+        data['status'] = instance.status
+        data['date'] = instance.date.strftime('%Y-%m-%d') if instance.date else ''
+    
 
     if instance.modified_by:
         # Check if a PendingChanges entry already exists
