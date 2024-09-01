@@ -1,9 +1,5 @@
 import os
-from dotenv import load_dotenv
 from pathlib import Path
-
-# Load .env file
-load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,12 +8,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = 'django-insecure-f7(r0%ad6cx7y)n!g01ln#gmg=jwwmnu8ll)w-9_8&@nw2#*^7'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') == 'True'
+DEBUG = True
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -78,14 +74,15 @@ WSGI_APPLICATION = 'ladies.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
-        'PORT': os.getenv('DATABASE_PORT'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'othmanjamal_ladies',
+        'USER': 'othmanjamal_ladies',
+        'PASSWORD': 'othmanjamal_ladies',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -138,6 +135,9 @@ LOGIN_REDIRECT_URL = 'login_App:login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+
+
 # LOGGING = {
 #     'version': 1,
 #     'disable_existing_loggers': False,
@@ -176,12 +176,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #         'schedule': 'biannual',
 #     }),
 # ]
-
-# Additional configurations for email
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'your.smtp.server'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'othmanjmal07@gmail.com'
-EMAIL_HOST_PASSWORD = 'your-password'
-DEFAULT_FROM_EMAIL = 'othmanjmal07@gmail.com'
