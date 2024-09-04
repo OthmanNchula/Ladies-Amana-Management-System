@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-f7(r0%ad6cx7y)n!g01ln#gmg=jwwmnu8ll)w-9_8&@nw2#*^7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['ladiesamana.othmanjamal.com', 'www.ladiesamana.othmanjamal.com']
 
 # Application definition
 INSTALLED_APPS = [
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -76,8 +77,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'othmanjamal_ladies',
-        'USER': 'othmanjamal_ladies',
-        'PASSWORD': 'othmanjamal_ladies',
+        'USER': 'othmanjamal_othmanjamal',
+        'PASSWORD': 'othmanjamal_othmanjamal',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -117,10 +118,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    os.path.join(BASE_DIR, "static")
 ]
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media files (uploads)
 MEDIA_URL = '/media/'
@@ -134,45 +137,3 @@ LOGIN_REDIRECT_URL = 'login_App:login'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-
-
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'file': {
-#             'level': 'DEBUG',
-#             'class': 'logging.FileHandler',
-#             'filename': 'debug.log',
-#         },
-#     },
-#     'loggers': {
-#         'django': {
-#             'handlers': ['file'],
-#             'level': 'DEBUG',
-#             'propagate': True,
-#         },
-#         # You can add your app-specific logger here as well
-#         'adminApp': {
-#             'handlers': ['file'],
-#             'level': 'DEBUG',
-#             'propagate': True,
-#         },
-#     },
-# }
-
-# # Crontab configuration for automatic report generation
-# CRONJOBS = [
-#     # Generate and send monthly report on the last day of each month at 11:59 PM
-#     ('59 23 28-31 * *', 'django.core.management.call_command', ['generate_reports'], {
-#         'schedule': 'monthly',
-#         'day_of_month': '28-31',
-#     }),
-
-#     # Generate and send bi-annual report on the last day of June and December at 11:59 PM
-#     ('59 23 30 6,12 *', 'django.core.management.call_command', ['generate_reports'], {
-#         'schedule': 'biannual',
-#     }),
-# ]

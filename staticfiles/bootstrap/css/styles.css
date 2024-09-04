@@ -1,0 +1,250 @@
+.btn-block {
+    width: 100%;
+}
+
+.navbar {
+    background-color: #D6A2AD !important; /* Color from the provided image */
+    height: 70px; /* Increased height */
+    transition: height 0.5s ease-in-out; /* Add transition for height */
+}
+
+.navbar-hide {
+    transform: translateY(-100%);
+    transition: transform 0.5s ease-in-out; /* Slower transition */
+}
+
+.navbar-nav .nav-item .nav-link {
+    color: #000000;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    position: relative;
+    transition: color 0.25s, background-color 0.25s;
+}
+
+.navbar-nav .nav-item .nav-link:hover,
+.navbar-nav .nav-item .nav-link.active {
+    color: #343a40;
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/*Footer*/
+.body-content {
+    padding-bottom: 2rem; /* Add some padding to the bottom to ensure space between content and footer */
+}
+
+
+
+input {
+    border-color: #ced4da; /* Default border color */
+    box-shadow: none;
+}
+
+input:focus {
+    border-color: #D6A2AD !important;
+    box-shadow: 0 0 0 0.2rem rgba(214, 162, 173, 0.25) !important;
+}
+
+.dashboard-container {
+    background-color: #F4E1E6; /* Light pink background color */
+    border-radius: 15px; /* Rounded corners */
+    padding: 20px; /* Padding around the dashboard */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for the dashboard container */
+}
+
+.card-custom {
+    border-radius: 15px !important; /* Rounded corners for the cards */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for each card */
+    background-color: #D6A2AD !important; /* Background color for each card */
+    max-width: 95%; /* Reduce the size of each card */
+    margin: auto; /* Center each card within its column */
+}
+
+.card-value {
+    font-size: 2rem; /* Increase font size of the values */
+    font-weight: bold;
+    color: #ffffff; /* Ensure the text color is white for visibility */
+}
+
+/* Responsive Styles */
+@media (max-width: 767px) {
+    .navbar {
+        height: 60px; /* Adjust navbar height for mobile */
+    }
+    
+    .navbar-nav .nav-item .nav-link {
+        font-size: 16px; /* Adjust font size for mobile */
+    }
+    
+    .register-section h1,
+    .register-section legend {
+        font-size: 24px; /* Adjust heading sizes for mobile */
+    }
+    
+    .footer-section {
+        padding: 10px 0; /* Adjust footer padding for mobile */
+    }
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.table th,
+.table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody + tbody {
+    border-top: 2px solid #dee2e6;
+}
+
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #dee2e6;
+}
+
+.table-bordered thead th,
+.table-bordered thead td {
+    border-bottom-width: 2px;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+    color: #fff;
+    padding: 0.5em;
+    border-radius: 0.25rem;
+}
+
+.table-responsive {
+    margin-top: 20px;
+}
+
+.loan-history-section {
+    padding: 20px;
+}
+
+.loan-history-section h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Admin css */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.form-label {
+    font-weight: bold;
+}
+
+.btn-warning {
+    background-color: #d67a0a;
+    border-color: #d67a0a;
+}
+
+.btn-warning:hover {
+    background-color: #b36908;
+    border-color: #b36908;
+}
+
+/* mtaji */
+.mtaji-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mtaji-table th, .mtaji-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.mtaji-table th {
+    background-color: #f2f2f2;
+    color: black;
+}
+
+.mtaji-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.mtaji-table tr:hover {
+    background-color: #ddd;
+}
+
+.mtaji-table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: #D6A2AD;
+    color: white;
+}
+
+.text-center {
+    text-align: center;
+}
+
+
+/* mkopo.html */
+.container {
+    margin-top: 50px;
+}
+
+.table-responsive {
+    max-width: 600px;
+    margin: auto;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.list-group-item-action {
+    cursor: pointer;
+}
+
+.list-group-item-action.active {
+    background-color: #D6A2AD;
+    border-color: #D6A2AD;
+    color: white;
+}
+
+.content-section {
+    display: none;
+}
+
+/* AdminApp/member.html */
+
+.full-width-table {
+    width: 100%;
+    table-layout: auto;
+}
+
+.text-center {
+    text-align: center;
+}
+
+/* loan_request table */
+.table {
+    width: 100%;
+}
