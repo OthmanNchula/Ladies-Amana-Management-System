@@ -5,11 +5,23 @@
 <div class="container mt-3">
     <h3 class="text-center">Manage {{ managed_user.username }}'s Loan</h3>
 
-    <!-- Navigation Links -->
-    <div class="nav nav-tabs justify-content-center mx-auto" style="background-color: #D6A2AD; max-width: 630px;">
-        <a class="nav-link active text-black" href="javascript:void(0);" onclick="showSection('maombi')" id="maombi-tab">Maombi ya Mkopo</a>
-        <a class="nav-link text-black" href="javascript:void(0);" onclick="showSection('historia')" id="historia-tab">Historia ya Mikopo</a>
-        <a class="nav-link text-black" href="javascript:void(0);" onclick="showSection('malipo')" id="malipo-tab">Malipo ya Mkopo</a>
+    <!-- Horizontal Scrollable Navigation Links -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-auto">
+            <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #D6A2AD; overflow-x: auto;">
+                <ul class="navbar-nav mx-auto flex-nowrap">
+                    <li class="nav-item">
+                        <a class="nav-link active text-black" href="javascript:void(0);" onclick="showSection('maombi')" id="maombi-tab" style="margin-right: 15px;">Maombi ya Mkopo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-black" href="javascript:void(0);" onclick="showSection('historia')" id="historia-tab" style="margin-right: 15px;">Historia ya Mikopo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-black" href="javascript:void(0);" onclick="showSection('malipo')" id="malipo-tab" style="margin-right: 0;">Malipo ya Mkopo</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 
     <!-- Loan Request Status Section -->
@@ -73,37 +85,54 @@
 
     <!-- Loan Payments Section -->
     <div id="malipo" class="mt-4" style="display: none;">
-        <h4 class="text-center">Malipo ya Mkopo</h4>
+        <h4 class="text-center">
+            Malipo ya Mkopo ({{ current_loan.amount|intcomma }}/=) - Remaining: {{ remaining_loan_balance|intcomma }}/=
+        </h4>        
         {% if current_loan %}
             <div class="table-responsive mx-auto" style="max-width: 600px;">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>Mwaka</th>
-                            <th>Mwezi</th>
+                            <th>Tarehe</th>
                             <th>Kiasi cha Malipo (Tsh)</th>
                         </tr>
                     </thead>
                     <tbody id="payment-records">
                         {% for payment in loan_payments %}
                             <tr>
-                                <td>{{ payment.year }}</td>
-                                <td>{{ payment.month }}</td>
+                                <td>{{ payment.payment_date|date:"d M Y" }}</td> <!-- Display the date in a readable format -->
                                 <td>{{ payment.amount|intcomma }}/=</td>
                             </tr>
                         {% endfor %}
+                        <tr>
+                            <th>Total Payments:</th>
+                            <th>{{ loan_payments_total|intcomma }}/=</th> <!-- Display the total amount of payments -->
+                        </tr>
                     </tbody>
                 </table>
             </div>
+    
             <div class="text-center mt-4">
                 <form method="post" action="{% url 'admin_App:loan_payments' managed_user.id %}" id="loan-payment-form">
                     {% csrf_token %}
-                    <input type="number" name="year" placeholder="Year" class="form-control mb-2" required>
-                    <input type="number" name="month" placeholder="Month" class="form-control mb-2" required min="1" max="12">
-                    <input type="number" name="amount" placeholder="Payment Amount" class="form-control mb-2" required>
-                    <button type="submit" class="btn btn-success">Loan Payment</button>
+                    
+                    <!-- Date Picker Input (Full Date) -->
+                    <div class="input-group mb-2">
+                        <span class="input-group-text" id="date-picker-addon">Select Date</span>
+                        <input type="text" id="payment-date" name="payment_date" class="form-control" placeholder="DD/MM/YYYY" aria-describedby="date-picker-addon" required>
+                    </div>
+    
+                    <!-- Payment Amount Input -->
+                    <div class="input-group mb-2">
+                        <span class="input-group-text">Amount (Tsh)</span>
+                        <input type="text" name="amount" placeholder="Payment Amount" class="form-control" required>
+                    </div>
+    
+                    <!-- Add Payment Button -->
+                    <button type="submit" class="btn btn-success">Add Payment</button>
                 </form>
             </div>
+            
         {% else %}
             <p class="text-center">No active loan available for payments.</p>
         {% endif %}
@@ -126,18 +155,27 @@
         document.getElementById(section + '-tab').classList.add('active', 'bg-white');
     }
 
-    document.getElementById('loan-payment-form').addEventListener('submit', function(e) {
-        e.preventDefault();
+    $(document).ready(function() {
+    // Initialize the Bootstrap Datepicker for full date (DD/MM/YYYY)
+    $('#payment-date').datepicker({
+        format: "dd/mm/yyyy",  // Full date format
+        autoclose: true,
+        todayHighlight: true
+    });
 
-        const form = e.target;
-        const formData = new FormData(form);
+    // Submit form with the selected date and amount values
+    $('#loan-payment-form').on('submit', function(event) {
+        event.preventDefault(); // Prevent the form from submitting the traditional way
+
+        const form = event.target;
+        const formData = new FormData(form); // Capture the form data
         const url = form.action;
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         fetch(url, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': csrftoken
+                'X-CSRFToken': csrftoken  // Pass CSRF token
             },
             body: formData
         })
@@ -145,26 +183,45 @@
         .then(data => {
             if (data.success) {
                 const paymentRecords = document.getElementById('payment-records');
-                
+
+                // Add the new payment record to the table, using full date (Tarehe)
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
-                    <td>${data.payment.year}</td>
-                    <td>${data.payment.month}</td>
-                    <td>${data.payment.amount}</td>
+                    <td>${data.payment.payment_date}</td>  <!-- Full date from the response -->
+                    <td>${data.payment.amount}</td>  <!-- Payment amount -->
                 `;
                 
-                paymentRecords.appendChild(newRow);
-                form.reset();
-                alert(data.success);
+                paymentRecords.appendChild(newRow);  // Append the new payment record to the table
+                form.reset();  // Reset the form after successful payment
+                alert(data.success);  // Show success message
             } else {
-                alert(data.error);
+                alert(data.error);  // Show error message if something goes wrong
             }
         })
         .catch(error => console.error('Error:', error));
     });
+});
+
 </script>
 
 <style>
+    /* Make the navbar horizontally scrollable */
+    .year-navbar {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .year-navbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .year-navbar .nav-item {
+        white-space: nowrap;
+    }
+
     .nav-link.active {
         background-color: white !important;
         color: black !important;

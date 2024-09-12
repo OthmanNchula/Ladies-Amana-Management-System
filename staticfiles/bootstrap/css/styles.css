@@ -203,6 +203,47 @@ body {
 .text-center {
     text-align: center;
 }
+/* General year navigation styling */
+.navbar-nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Ensure it wraps on smaller screens */
+    padding: 0;
+}
+
+/* On larger screens, keep the vertical layout */
+@media (min-width: 768px) {
+    .navbar-nav {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .navbar-nav .nav-item {
+        margin-bottom: 10px; /* Space between year links vertically */
+    }
+}
+
+/* On smaller screens (mobile), make the years display horizontally */
+@media (max-width: 767px) {
+    .navbar-nav {
+        flex-direction: row; /* Display the year links in a row */
+        overflow-x: auto; /* Allow horizontal scrolling if needed */
+        white-space: nowrap; /* Prevent year text from wrapping */
+        justify-content: space-around; /* Distribute space evenly */
+        padding: 0 10px;
+    }
+
+    .navbar-nav .nav-item {
+        margin: 0 5px; /* Add spacing between the year links */
+    }
+
+    .navbar-nav .nav-link {
+        padding: 5px 10px;
+        font-size: 14px; /* Adjust font size for smaller screens */
+    }
+}
+
 
 
 /* mkopo.html */

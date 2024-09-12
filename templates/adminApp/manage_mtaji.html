@@ -1,21 +1,33 @@
 {% extends 'admin_base.html' %}
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div class="container mt-3">
+    <!-- Title -->
     <h1 class="text-center">Manage {{ managed_user.username }}'s Mtaji</h1>
-    <div class="row mt-3">
-        <div class="col-md-3">
-            <div class="list-group" id="year-list">
-                {% for year in years %}
-                    <a href="?year={{ year }}" class="list-group-item list-group-item-action year-link {% if year == current_year %}active{% endif %}" data-year="{{ year }}">{{ year }}</a>
-                {% endfor %}
-            </div>
+
+    <!-- Horizontal Navbar for Years -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-auto">
+            <nav class="navbar navbar-expand-lg navbar-light year-navbar" style="background-color: #D6A2AD;">
+                <ul class="navbar-nav mx-auto">
+                    {% for year in years %}
+                    <li class="nav-item" style="margin-right: 15px;">
+                        <a href="?year={{ year }}" class="nav-link year-link {% if year == current_year %}active{% endif %}" data-year="{{ year }}">{{ year }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </nav>
         </div>
-        <div class="col-md-9">
+    </div>
+
+    <!-- Mtaji Form and Table -->
+    <div class="row mt-3">
+        <div class="col-md-12">
             <form method="post">
                 {% csrf_token %}
-                <div class="table-responsive mx-auto" style="max-width: 300px;">
-                    <table class="table mtaji-table">
+                <div class="table-responsive mx-auto" style="max-width: 400px;">
+                    <table class="table swadaqa-table">
                         <thead>
                             <tr>
                                 <th style="width: 50%;">Mwaka</th>
@@ -24,14 +36,14 @@
                         </thead>
                         <tbody id="contributions-body">
                             <tr>
-                                <td>{{ current_year }}</td>
+                                <td id="selected-year">{{ current_year }}</td>
                                 <td>
-                                    <input type="text" name="amount_{{ current_year }}" id="amount" class="form-control" value="{{ current_amount }}" />
+                                    <input type="text" name="amount_{{ current_year }}" id="amount" class="form-control" value="{% if current_amount %}{{ current_amount|floatformat:0|intcomma }}{% endif %}" />
                                 </td>
                             </tr>
                             <tr>
                                 <td style="font-weight: bold;">TOTAL</td>
-                                <td id="total-amount">{{ current_amount }}</td>
+                                <td id="total-amount">{{ current_amount|floatformat:0|intcomma }} Tsh</td>
                             </tr>
                         </tbody>
                     </table>
@@ -41,17 +53,24 @@
         </div>
     </div>
 </div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+   document.addEventListener('DOMContentLoaded', function() {
         const amountInput = document.getElementById('amount');
         const totalAmount = document.getElementById('total-amount');
         const saveButton = document.getElementById('save-button');
         const originalAmount = amountInput.value;
 
-       // Function to check if the input is modified or not empty
-       function checkInput() {
-            const amountValue = parseFloat(amountInput.value.replace(/,/g, '')) || 0;
-            totalAmount.innerText = amountValue.toLocaleString();
+        function formatAmount(value) {
+            if (!value || value.trim() === '0') {
+                return ''; // Return empty string if there's no value or it's zero
+            }
+            return parseInt(value.replace(/,/g, ''), 10).toLocaleString() + ' Tsh';
+        }
+
+        function checkInput() {
+            const formattedAmount = formatAmount(amountInput.value);
+            totalAmount.innerText = formattedAmount;
 
             if (amountInput.value !== '' && amountInput.value !== originalAmount) {
                 saveButton.style.display = 'block';
@@ -62,7 +81,9 @@
 
         amountInput.addEventListener('input', checkInput);
 
-        // Initial check to determine the state of the save button
+        // Format the input value initially
+        amountInput.value = formatAmount(amountInput.value);
+
         checkInput();
     });
 </script>

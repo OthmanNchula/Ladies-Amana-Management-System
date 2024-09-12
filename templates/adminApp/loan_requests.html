@@ -1,5 +1,6 @@
 {% extends 'admin_base.html' %}
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div class="container mt-3">
     <h1 class="text-center">Loan Requests</h1>
@@ -20,7 +21,7 @@
                         {% for loan in loans %}
                             <tr>
                                 <td>{{ loan.user.username }}</td>
-                                <td>{{ loan.amount|floatformat:2 }}</td>
+                                <td>{{ loan.amount|floatformat:0|intcomma }} Tsh</td>
                                 <td>{{ loan.date }}</td>
                                 <td>{{ loan.status }}</td>
                                 <td>

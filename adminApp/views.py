@@ -24,7 +24,9 @@ import os
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 from decimal import Decimal
-
+from django.db import transaction, IntegrityError
+from django.db.models import Q
+from django.db import transaction
 
 
 def admin_login(request):
@@ -49,7 +51,7 @@ def get_dashboard_context():
     total_mtaji = Mtaji.objects.aggregate(Sum('amount'))['amount__sum'] or 0
     total_michango = Michango.objects.aggregate(Sum('amount'))['amount__sum'] or 0
     total_swadaqa = Swadaqa.objects.aggregate(Sum('amount'))['amount__sum'] or 0
-    total_loans = Loan.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+    total_loans = Loan.objects.filter(status='Approved').aggregate(Sum('amount'))['amount__sum'] or 0
     loan_requests = Loan.objects.filter(status='Pending').count()
     approved_loans = Loan.objects.filter(status='Approved').count()
     rejected_loans = Loan.objects.filter(status='Rejected').count()
@@ -147,9 +149,11 @@ def delete_member(request, user_id):
 @login_required(login_url='/account/login/')
 def manage_mtaji(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    
+
+    # Generate years from 2018 to the current year
     years = [year for year in range(2018, timezone.now().year + 1)]
     current_year = timezone.now().year
+    
     selected_year = int(request.GET.get('year', current_year))
 
     try:
@@ -167,9 +171,8 @@ def manage_mtaji(request, user_id):
                 defaults={'amount': amount}
             )
             # Pass the modified_by user (the admin) to the save method
-            mtaji.save(modified_by=request.user)  # Save with the admin user
-
-        return redirect('admin_App:manage_mtaji', user_id=user.id)
+            mtaji.save(modified_by=request.user)
+            return redirect('admin_App:manage_mtaji', user_id=user.id)
 
     context = {
         'managed_user': user,
@@ -178,8 +181,9 @@ def manage_mtaji(request, user_id):
         'current_amount': current_amount,
         'show_back_button': True,
     }
-    
     return render(request, 'adminApp/manage_mtaji.html', context)
+
+
 @login_required
 def mtaji_data(request, user_id, year):
     user = get_object_or_404(User, id=user_id)
@@ -194,7 +198,10 @@ def mtaji_data(request, user_id, year):
         'amount': amount,
         'total': amount
     }
+
     return JsonResponse(data)
+
+
     
 @login_required(login_url='/account/login/')
 def manage_mchango(request, user_id):
@@ -220,9 +227,6 @@ def manage_mchango(request, user_id):
     
     return render(request, 'adminApp/manage_mchango.html', context)
 
-from django.db import transaction, IntegrityError
-from django.db.models import Q
-
 @login_required(login_url='/account/login/')
 def save_mchango(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -230,6 +234,8 @@ def save_mchango(request, user_id):
 
     months = ['January', 'February', 'March', 'April', 'May', 'June',
               'July', 'August', 'September', 'October', 'November', 'December']
+
+    modified_months = []  # Track modified months
 
     if request.method == 'POST':
         try:
@@ -240,11 +246,13 @@ def save_mchango(request, user_id):
                         month_number = months.index(month) + 1
                         try:
                             michango = Michango.objects.get(user=user, year=current_year, month=month_number)
+                            # Check if the amount has actually changed
                             if michango.amount != int(amount):
                                 michango.amount = int(amount)
                                 michango.save(modified_by=request.user)
-
+                                modified_months.append(month)  # Only log changed months
                         except Michango.DoesNotExist:
+                            # If it doesn't exist, create new data and log the change
                             Michango.objects.create(
                                 user=user,
                                 year=current_year,
@@ -252,15 +260,15 @@ def save_mchango(request, user_id):
                                 amount=int(amount),
                                 modified_by=request.user
                             )
-
+                            modified_months.append(month)  # Log the new month
         except IntegrityError:
-            # Handle any integrity errors during the transaction
             messages.error(request, "An error occurred while saving changes. Please try again.")
             return redirect('admin_App:manage_user', user_id=user.id)
 
         return redirect('admin_App:manage_mchango', user_id=user.id)
 
     return redirect('admin_App:manage_user', user_id=user.id)
+
 
 
 @login_required(login_url='/account/login/')
@@ -339,8 +347,15 @@ def manage_mkopo(request, user_id):
     # Step 4: Loan History
     loan_history = Loan.objects.filter(user=user).exclude(status='Pending')
 
-    # Step 5: Loan Payments
-    loan_payments = LoanPayment.objects.filter(loan=current_loan).order_by('year', 'month') if current_loan else []
+# Step 5: Loan Payments and Total Payments
+    if current_loan:
+        loan_payments = LoanPayment.objects.filter(loan=current_loan).order_by('payment_date')
+        loan_payments_total = loan_payments.aggregate(Sum('amount'))['amount__sum'] or Decimal('0.0')
+        remaining_loan_balance = current_loan.amount - loan_payments_total
+    else:
+        loan_payments = []
+        loan_payments_total = Decimal('0.0')
+        remaining_loan_balance = Decimal('0.0')
 
     context = {
         'managed_user': user,
@@ -351,10 +366,13 @@ def manage_mkopo(request, user_id):
         'loan_history': loan_history,
         'current_loan': current_loan,
         'loan_payments': loan_payments,
+        'loan_payments_total': loan_payments_total,
+        'remaining_loan_balance': remaining_loan_balance,
         'show_back_button': True,
     }
 
     return render(request, 'adminApp/manage_mkopo.html', context)
+
 
 @login_required(login_url='/account/login/')
 def process_loan_request(request, user_id):
@@ -400,45 +418,68 @@ def process_loan_request(request, user_id):
 @login_required(login_url='/account/login/')
 def loan_payments_view(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    
+
     # Get the most recent approved loan for the user
     current_loan = Loan.objects.filter(user=user, status='Approved').order_by('-date').first()
 
     if not current_loan:
-        return JsonResponse({'error': 'No approved loans found for this user.'}, status=400)
-
-    total_paid = LoanPayment.objects.filter(loan=current_loan).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+        messages.error(request, 'No approved loans found for this user.')
+        return redirect('admin_App:manage_mkopo', user_id=user_id)
+    
+    # Get the total amount of payments already made for this loan
+    total_payments = LoanPayment.objects.filter(loan=current_loan).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.0')
 
     if request.method == 'POST':
-        year = request.POST.get('year')
-        month = request.POST.get('month')
-        date = request.POST.get('date')
-        amount = Decimal(request.POST.get('amount'))
+        payment_date = request.POST.get('payment_date')
+        amount = request.POST.get('amount')
 
-        if total_paid + amount > current_loan.amount:
-            return JsonResponse({'error': 'Total payments cannot exceed the loan amount.'}, status=400)
+        try:
+            amount = Decimal(amount)
+        except (ValueError, TypeError):
+            messages.error(request, 'Invalid amount entered.')
+            return redirect('admin_App:manage_mkopo', user_id=user_id)
 
-        # Create or update the payment record
-        payment, created = LoanPayment.objects.update_or_create(
+        try:
+            payment_date = datetime.strptime(payment_date, '%d/%m/%Y')
+        except ValueError:
+            messages.error(request, 'Invalid date format. Please use DD/MM/YYYY.')
+            return redirect('admin_App:manage_mkopo', user_id=user_id)
+        
+        # Calculate the total payments after adding this new payment
+        new_total_payments = total_payments + amount
+
+        # Check if the new total payments exceed the loan amount
+        if new_total_payments > current_loan.amount:
+            messages.error(request, 'Payment exceeds the remaining loan balance.')
+            return redirect('admin_App:manage_mkopo', user_id=user_id)
+
+        # Create a new payment
+        payment = LoanPayment.objects.create(
             loan=current_loan,
-            year=year,
-            month=month,
-            defaults={'amount': amount, 'date': date, 'modified_by': request.user}
+            payment_date=payment_date,
+            amount=amount,
+            modified_by=request.user
         )
 
-        # Prepare the payment data for returning as JSON
-        payment_data = {
-            'year': payment.year,
-            'month': payment.get_month_display(),  # Assuming month is stored as an integer field
-            'date': payment.date.strftime('%B %d, %Y'),  # Format date for display
-            'amount': "{:,.0f}/=".format(payment.amount)
+        # Log the action (including the amount)
+        data = {
+            'user': user.username,
+            'loan_id': current_loan.id,
+            'action': 'Update',
+            'amount': str(payment.amount),  # Add the amount to the log
         }
 
-        total_paid += amount
+        PendingChanges.objects.create(
+            admin=request.user,
+            table_name='Loan',
+            action='Update',
+            data=json.dumps(data, cls=DjangoJSONEncoder)
+        )
 
-        return JsonResponse({'success': 'Payment recorded successfully.', 'payment': payment_data, 'total_paid': "{:,.0f}/=".format(total_paid)})
+        messages.success(request, 'Payment recorded successfully.')
+        return redirect('admin_App:manage_mkopo', user_id=user_id)
 
-    return JsonResponse({'error': 'Invalid request.'}, status=400)
+    return redirect('admin_App:manage_mkopo', user_id=user_id)
 
 
 @login_required(login_url='/account/login/')
@@ -689,6 +730,12 @@ def verification(request):
         messages.error(request, 'Access denied.')
         return redirect('admin_App:admin_dashboard')
     
+# Add this MONTHS_MAP here:
+MONTHS_MAP = {
+    'January': 1, 'February': 2, 'March': 3, 'April': 4, 
+    'May': 5, 'June': 6, 'July': 7, 'August': 8, 
+    'September': 9, 'October': 10, 'November': 11, 'December': 12
+}
 
 @login_required(login_url='/account/login/')
 def approve_change(request, change_id):
@@ -702,13 +749,33 @@ def approve_change(request, change_id):
         if isinstance(pending_change.data, str):
             pending_change.data = json.loads(pending_change.data)
 
-        # Apply the change to the Loan object
-        loan = get_object_or_404(Loan, id=pending_change.data.get('loan_id'))
-        loan.status = pending_change.data.get('new_status')
-        loan.save()
-
-        # Store the approved change in VerifiedChanges
-        VerifiedChanges.objects.create(pending_change=pending_change)
+        # Handle different categories: Loan, Mtaji, Michango, Swadaqa
+        if pending_change.table_name == 'Loan':
+            loan = get_object_or_404(Loan, id=pending_change.data.get('loan_id'))
+            loan.status = pending_change.data.get('new_status', 'Approved')
+            loan.save()
+        elif pending_change.table_name == 'Mtaji':
+            user = get_object_or_404(User, username=pending_change.data.get('user'))
+            Mtaji.objects.update_or_create(
+                user=user,
+                year=pending_change.data.get('year'),
+                defaults={'amount': pending_change.data.get('amount')}
+            )
+        elif pending_change.table_name == 'Michango':
+            user = get_object_or_404(User, username=pending_change.data.get('user'))
+            Michango.objects.update_or_create(
+                user=user,
+                year=pending_change.data.get('year'),
+                month=pending_change.data.get('month'),
+                defaults={'amount': pending_change.data.get('amount')}
+            )
+        elif pending_change.table_name == 'Swadaqa':
+            user = get_object_or_404(User, username=pending_change.data.get('user'))
+            Swadaqa.objects.update_or_create(
+                user=user,
+                year=pending_change.data.get('year'),
+                defaults={'amount': pending_change.data.get('amount')}
+            )
 
         # Log the action in ActivityLog
         ActivityLog.objects.create(
@@ -719,11 +786,12 @@ def approve_change(request, change_id):
             details=f"Approved changes to {pending_change.table_name}"
         )
 
+        # Store the approved change in VerifiedChanges
+        VerifiedChanges.objects.create(pending_change=pending_change)
+
         messages.success(request, 'Change approved successfully.')
 
     return redirect('admin_App:verification')
-
-
 def revert_mtaji_change(pending_change):
     # Extract the data from the pending change
     data = pending_change.data
@@ -788,8 +856,6 @@ def revert_loan_change(pending_change):
         Loan.objects.filter(id=loan_id, user=user).update(status=original_status)
 
 
-from django.db import transaction
-
 @login_required(login_url='/account/login/')
 def reject_change(request, change_id):
     if request.user.username == 'admin1':
@@ -801,10 +867,17 @@ def reject_change(request, change_id):
                 if isinstance(pending_change.data, str):
                     pending_change.data = json.loads(pending_change.data)
 
-                # Revert the loan to its original status
-                loan = get_object_or_404(Loan, id=pending_change.data.get('loan_id'))
-                loan.status = pending_change.data.get('original_status')
-                loan.save()
+                # Handle different categories: Loan, Mtaji, Michango, Swadaqa
+                if pending_change.table_name == 'Loan':
+                    loan = get_object_or_404(Loan, id=pending_change.data.get('loan_id'))
+                    loan.status = pending_change.data.get('original_status', 'Pending')
+                    loan.save()
+                elif pending_change.table_name == 'Mtaji':
+                    revert_mtaji_change(pending_change)
+                elif pending_change.table_name == 'Michango':
+                    revert_michango_change(pending_change)
+                elif pending_change.table_name == 'Swadaqa':
+                    revert_swadaqa_change(pending_change)
 
                 # Store the rejected change in RejectedChanges
                 rejected_change = RejectedChanges.objects.create(pending_change=pending_change)
@@ -828,6 +901,7 @@ def reject_change(request, change_id):
             messages.error(request, f"An error occurred while rejecting the change: {e}")
 
     return redirect('admin_App:verification')
+
 
 @login_required(login_url='/account/login/')
 def verified_actions(request):

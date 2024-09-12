@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-f7(r0%ad6cx7y)n!g01ln#gmg=jwwmnu8ll)w-9_8&@nw2#*^7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['ladiesamana.othmanjamal.com', 'www.ladiesamana.othmanjamal.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -76,9 +76,9 @@ WSGI_APPLICATION = 'ladies.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'othmanjamal_ladies',
-        'USER': 'othmanjamal_othmanjamal',
-        'PASSWORD': 'othmanjamal_othmanjamal',
+        'NAME': 'ladies',
+        'USER': 'root',
+        'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -137,3 +137,48 @@ LOGIN_REDIRECT_URL = 'login_App:login'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# settings.py
+
+import os
+import logging.config
+
+# Activate Django's debug mode during development
+DEBUG = True
+
+# Setup logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # Keep existing loggers
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',  # Set the log level to DEBUG for detailed logs
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'debug.log'),  # Log file location
+            'formatter': 'verbose',  # Use verbose formatter
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],  # Log to both file and console
+            'level': 'DEBUG',  # Capture DEBUG and above levels
+            'propagate': True,  # Ensure logs propagate to the root logger
+        },
+        'django.db.backends': {
+            'handlers': ['file'],  # Log database queries to the file
+            'level': 'DEBUG',
+            'propagate': False,  # Don't propagate to higher loggers
+        },
+    },
+}

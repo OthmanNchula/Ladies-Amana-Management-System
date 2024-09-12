@@ -5,19 +5,21 @@
 <div class="container mt-5">
     <!-- Cards for Total Michango -->
     <div class="row mb-4 text-center justify-content-center">
+
         <div class="col-md-5">
             <div class="card text-center shadow h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Total Michango ({{ selected_year }})</h5>
-                    <p class="card-text">{{ total_mchango_year|floatformat:0|intcomma }} Tsh</p>
+                    <h5 class="card-title">Jumla Michango (All Years)</h5>
+                    <p class="card-text">{{ total_mchango_all_years|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
+        
         <div class="col-md-5">
             <div class="card text-center shadow h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Total Michango (All Years)</h5>
-                    <p class="card-text">{{ total_mchango_all_years|floatformat:0|intcomma }} Tsh</p>
+                    <h5 class="card-title">Jumla Michango ({{ selected_year }})</h5>
+                    <p class="card-text">{{ total_mchango_year|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -28,7 +30,7 @@
     <!-- Horizontal Navbar for Years -->
     <div class="row justify-content-center mb-4">
         <div class="col-auto">
-            <nav class="navbar navbar-expand-lg navbar-light" style="max-width: 700px; background-color: #D6A2AD;">
+            <nav class="navbar navbar-expand-lg navbar-light year-navbar" style="background-color: #D6A2AD;">
                 <ul class="navbar-nav mx-auto">
                     {% for year in years %}
                     <li class="nav-item" style="margin-right: 15px;">
@@ -64,7 +66,6 @@
                         </tr>
                     </tbody>
                 </table>
-                <button class="btn btn-block" style="background-color: #D6A2AD">Lipa Michango</button>
             </div>
         </div>
     </div>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-2">
     {% if messages %}
     <div class="container mt-3">
         {% for message in messages %}
@@ -13,11 +13,14 @@
     {% endif %} 
     <div class="row">
         <div class="col-12 text-center">
-            <h1 class="display-4" style="color:rgb(122, 4, 107); font-weight: 500;">Assalam Alaikum, {{ user.first_name }}_{{ user.last_name }}</h1>
+            <h1 class="display-4 welcome-text" style="color:rgb(122, 4, 107); font-weight: 500;">
+                Assalam Alaikum, {{ user.first_name }}_{{ user.last_name }}
+            </h1>
             <p class="lead"></p>
         </div>
-    </div>
-    <div class="row mt-5 d-flex align-items-stretch">
+    </div>    
+    
+    <div class="row mt-3 d-flex align-items-stretch">
         <div class="col-md-3 mb-4 d-flex">
             <div class="card text-center border-0 shadow flex-fill d-flex flex-column">
                 <div class="card-body flex-grow-1 d-flex flex-column">

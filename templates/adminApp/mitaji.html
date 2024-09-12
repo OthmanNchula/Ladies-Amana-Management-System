@@ -1,5 +1,6 @@
 {% extends 'Admin_base.html' %}
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div class="container mt-3">
     <!-- Cards for Total Mtaji -->
@@ -8,7 +9,7 @@
             <div class="text-center shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title">Jumla ya mtaji kwa Miaka Yote</h5>
-                    <p class="card-text">{{ total_mtaji|floatformat:0 }} Tsh</p>
+                    <p class="card-text">{{ total_mtaji|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -16,7 +17,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title">Jumla ya mtaji kwa Mwaka {{ selected_year }}</h5>
-                    <p class="card-text">{{ total_mtaji_year|floatformat:0 }} Tsh</p>
+                    <p class="card-text">{{ total_mtaji_year|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -54,12 +55,12 @@
                         {% for member in members_mtaji %}
                         <tr data-user-id="{{ member.user_id }}" style="cursor: pointer;">
                             <td>{{ member.username }}</td>
-                            <td>{{ member.amount|floatformat:0 }}</td>
+                            <td>{{ member.amount|floatformat:0|intcomma }} Tsh</td>
                         </tr>
                         {% endfor %}
                         <tr>
                             <td style="font-weight: bold;">TOTAL</td>
-                            <td>{{ total_mtaji_year|floatformat:0 }}</td>
+                            <td>{{ total_mtaji_year|floatformat:0|intcomma }} Tsh</td>
                         </tr>
                     </tbody>
                 </table>

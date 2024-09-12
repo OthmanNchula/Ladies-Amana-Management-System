@@ -8,18 +8,18 @@
         <div class="col-md-4 mx-auto">
             <div class="card text-center shadow h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Total Swadaqa: {{ total_swadaqa_all_years|floatformat:0|intcomma }} Tsh</h5>
+                    <h5 class="card-title">Jumla Swadaqa: {{ total_swadaqa_all_years|floatformat:0|intcomma }} Tsh</h5>
                 </div>
             </div>
         </div>
     </div>
 
-    <h1 class="text-center">Swadaqa ya Kila Mwaka - <span id="selected-year">{{ current_year }}</span></h1>
+    <h1 class="text-center">Swadaqa ya Mwaka - <span id="selected-year">{{ current_year }}</span></h1>
 
     <!-- Horizontal Navbar for Years -->
     <div class="row justify-content-center mt-3 mb-4">
         <div class="col-auto">
-            <nav class="navbar navbar-expand-lg navbar-light" style="max-width: 700px; background-color: #D6A2AD;">
+            <nav class="navbar navbar-expand-lg navbar-light year-navbar" style="background-color: #D6A2AD;">
                 <ul class="navbar-nav mx-auto">
                     {% for year in years %}
                     <li class="nav-item" style="margin-right: 15px;">
@@ -48,12 +48,11 @@
                             <td id="amount">{{ amount|floatformat:0|intcomma }} Tsh</td>
                         </tr>
                         <tr>
-                            <td style="font-weight: bold;">Total</td>
+                            <td style="font-weight: bold;">Jumla</td>
                             <td id="total-amount">{{ total_swadaqa_year|floatformat:0|intcomma }} Tsh</td>
                         </tr>
                     </tbody>
                 </table>
-                <button class="btn btn-block" style="background-color: #D6A2AD;">Lipa Swadaqa</button>
             </div>
         </div>
     </div>

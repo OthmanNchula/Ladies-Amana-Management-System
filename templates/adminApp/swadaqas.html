@@ -1,14 +1,16 @@
 {% extends 'admin_base.html' %}
 {% load static %}
+{% load humanize %}
 {% block content %}
+
 <div class="container mt-1">
-    <div class="row mb-4 text-center">
+    <div class="row mb-4 text-center justify-content-center">
         <!-- Card for Total Swadaqa for all years -->
         <div class="col-md-6">
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya Swadaqa kwa Miaka Yote</h5>
-                    <p class="card-text">{{ total_swadaqa|floatformat:0 }}</p>
+                    <p class="card-text">{{ total_swadaqa|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -18,11 +20,13 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya Swadaqa kwa Mwaka {{ selected_year }}</h5>
-                    <p class="card-text">{{ total_swadaqa_year|floatformat:0 }}</p>
+                    <p class="card-text">{{ total_swadaqa_year|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
     </div>
+
+    <h1 class="text-center">Swadaqa ya Kila Mwaka - <span id="selected-year">{{ selected_year }}</span></h1>
 
     <!-- Horizontal Navbar for Years -->
     <div class="row justify-content-center mb-4">
@@ -44,25 +48,24 @@
     <!-- Display Swadaqa for the selected year -->
     <div class="row">
         <div class="col-md-12">
-            <h2 class="text-center">Swadaqa wa Kila Mwaka - {{ selected_year }}</h2>
-            <div class="table-responsive">
-                <table class="table table-striped">
+            <div class="table-responsive" style="max-width: 600px; margin: auto;">
+                <table class="table mtaji-table">
                     <thead>
                         <tr>
-                            <th>Member</th>
-                            <th>Kiasi</th>
+                            <th class="col-6">Member</th>
+                            <th class="col-6">Kiasi</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for member in members_swadaqa %}
                             <tr data-user-id="{{ member.user_id }}" style="cursor: pointer;">
                                 <td>{{ member.username }}</td>
-                                <td>{{ member.amount|floatformat:0 }}</td>
+                                <td>{{ member.amount|floatformat:0|intcomma }} Tsh </td>
                             </tr>
                         {% endfor %}
                         <tr>
                             <td style="font-weight: bold;">TOTAL</td>
-                            <td>{{ total_swadaqa_year|floatformat:0 }}</td>
+                            <td>{{ total_swadaqa_year|floatformat:0|intcomma }} Tsh</td>
                         </tr>
                     </tbody>
                 </table>

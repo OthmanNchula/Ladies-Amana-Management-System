@@ -1,6 +1,7 @@
 {% extends 'admin_base.html' %}
 {% load mchango_filters %}
 {% load static %}
+{% load humanize %}
 {% block content %}
 <div class="container mt-1">
     <!-- Cards for Total Michango -->
@@ -9,7 +10,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya michango ya miaka yote</h5>
-                    <p class="card-text">{{ total_michango|floatformat:0 }}</p>
+                    <p class="card-text">{{ total_michango|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -18,7 +19,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Jumla ya michango ya mwaka <span id="selected-year-card">{{ selected_year }}</span></h5>
-                    <p class="card-text" id="total-year-michango">{{ total_year_michango|floatformat:0 }} Tsh</p>
+                    <p class="card-text" id="total-year-michango">{{ total_year_michango|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -41,13 +42,13 @@
         </div>
     </div>
 
-    <div class="table-responsive" style="max-width: 1000px; margin: auto;">
-        <table class="table table-striped">
+    <div class="table-responsive michango-table-container" style="width: 100%;">
+        <table class="table table-striped michango-table" style="width: 100%;">
             <thead>
                 <tr>
                     <th>Member</th>
                     {% for month in months %}
-                        <th>{{ month }}</th>
+                        <th>{{ month }}</th> <!-- Adjust the width as needed -->
                     {% endfor %}
                 </tr>
             </thead>
@@ -56,16 +57,10 @@
                     <tr data-user-id="{{ member.user_id }}" style="cursor: pointer;">
                         <td>{{ member.username }}</td>
                         {% for value in member.michango_by_month %}
-                            <td>{{ value|floatformat:0 }}</td>
+                            <td>{{ value|floatformat:0|intcomma }}</td>
                         {% endfor %}
                     </tr>
                 {% endfor %}
-                <tr>
-                    <td style="font-weight: bold;">TOTAL</td>
-                    {% for value in total_michango_by_month %}
-                        <td>{{ value|floatformat:0 }}</td>
-                    {% endfor %}
-                </tr>
             </tbody>
         </table>
     </div>
