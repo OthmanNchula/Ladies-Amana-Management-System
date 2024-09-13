@@ -1,6 +1,7 @@
 {% extends 'admin_base.html' %}
 {% load static %}
 {% block content %}
+{% load humanize %}
 {% load michango_filters %}
 <div class="container">
     <h1 class="text-center">Manage {{ managed_user.username }}'s Monthly Contributions - <span id="selected-year">{{ current_year }}</span></h1>
@@ -12,7 +13,7 @@
                 <ul class="navbar-nav mx-auto">
                     {% for year in years %}
                     <li class="nav-item" style="margin-right: 15px;">
-                        <a href="javascript:void(0);" class="nav-link year-link {% if year == current_year %}active{% endif %}" data-year="{{ year }}">{{ year }}</a>
+                        <a href="?year={{ year }}" class="nav-link year-link {% if year == current_year %}active{% endif %}" data-year="{{ year }}">{{ year }}</a>
                     </li>
                     {% endfor %}
                 </ul>
@@ -37,7 +38,7 @@
                             <tr>
                                 <td>{{ month }}</td>
                                 <td>
-                                    <input type="text" name="amount_{{ month }}" id="amount-{{ forloop.counter }}" class="form-control" value="{% if amount != 0 %}{{ amount }}{% else %}{% endif %}">
+                                    <input type="text" name="amount_{{ month }}" id="amount-{{ forloop.counter }}" class="form-control" value="{% if amount != 0 %}{{ amount|floatformat:0|intcomma }}{% endif %}">
                                 </td>
                             </tr>
                             {% endfor %}
@@ -97,17 +98,14 @@
         // Initial check to determine the state of the save button
         checkInputs();
 
-        // Additional logic for switching years (same as before)
+        // Handle year navigation
         const yearLinks = document.querySelectorAll('.year-link');
         yearLinks.forEach(link => {
             link.addEventListener('click', function(event) {
                 event.preventDefault();
-
                 const selectedYear = this.getAttribute('data-year');
-
-                yearLinks.forEach(link => link.classList.remove('active'));
-                this.classList.add('active');
-                // Additional logic for fetching data for the selected year can be implemented here
+                // Redirect to the selected year's data
+                window.location.href = `?year=${selectedYear}`;
             });
         });
     });

@@ -11,14 +11,12 @@
                 </a>
                 <div class="card-body">
                     <p class="card-text">Uploaded at: {{ image.uploaded_at|date:"d M Y H:i" }}</p>
+                    <p class="card-text"><strong>Description:</strong> {{ image.description }}</p>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
-    {% if show_back_button %}
-    <button class="btn btn-secondary mt-3" onclick="history.back()">Back</button>
-    {% endif %}
 </div>
 
 <!-- Bootstrap Modal -->

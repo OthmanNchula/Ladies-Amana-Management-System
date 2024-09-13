@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import UserRegistrationForm, UserLoginForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from .forms import EditInfoForm
 from .models import Profile
 from .forms import PaymentScreenshotForm
+from .models import PaymentScreenshot
 
 
 def generate_unique_username(first_name, last_name):
@@ -114,7 +115,26 @@ def upload_payment_image(request):
             payment_screenshot.user = request.user
             payment_screenshot.save()
             messages.success(request, 'Image uploaded successfully.')
-            return redirect('login_App:user_dashboard')  # Redirect to user dashboard or another page
+            return render(request, 'loginApp/upload_payment_image.html', {'form': form}) # Redirect to user dashboard or another page
     else:
         form = PaymentScreenshotForm()
     return render(request, 'loginApp/upload_payment_image.html', {'form': form})
+
+@login_required(login_url='/account/login/')
+def payment_images(request):
+    payment_images = PaymentScreenshot.objects.filter(user=request.user).order_by('-uploaded_at')
+    context = {
+        'payment_images': payment_images,
+        'show_back_button': True
+    }
+    return render(request, 'loginApp/payment_images.html', context)
+
+@login_required(login_url='/account/login/')
+def delete_payment_image(request, image_id):
+    image = get_object_or_404(PaymentScreenshot, id=image_id, user=request.user)
+
+    if request.method == "POST":
+        image.delete()
+        messages.success(request, "Payment screenshot deleted successfully.")
+
+    return redirect('login_App:payment_images')

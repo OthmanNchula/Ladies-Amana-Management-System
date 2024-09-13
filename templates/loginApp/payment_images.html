@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3">
+  {% if show_back_button %}
+  <button class="btn btn-secondary mt-3" onclick="history.back()">Back</button>
+  {% endif %}
+  
+  <div class="row mt-5">
+      {% for image in payment_images %}
+      <div class="col-md-4 mb-4">
+          <div class="card">
+              <!-- Trigger modal with image click -->
+              <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal" data-img-url="{{ image.image.url }}">
+                  <img src="{{ image.image.url }}" class="card-img-top" alt="Payment Screenshot" style="cursor:pointer;">
+              </a>
+              <div class="card-body">
+                  <p class="card-text">Uploaded at: {{ image.uploaded_at|date:"d M Y H:i" }}</p>
+                  <p class="card-text"><strong>Description:</strong> {{ image.description }}</p>
+                  <!-- Delete button -->
+                  <form method="post" action="{% url 'login_App:delete_payment_image' image.id %}" style="display:inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
+              </div>
+          </div>
+      </div>
+      {% endfor %}
+  </div>
+</div>
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-lg" role="document">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="imageModalLabel">Payment Screenshot</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <img id="modalImage" src="" class="img-fluid" alt="Payment Screenshot">
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+  var imageModal = document.getElementById('imageModal');
+  imageModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      var imageUrl = button.getAttribute('data-img-url');
+      var modalImage = document.getElementById('modalImage');
+      modalImage.src = imageUrl;
+  });
+</script>
+{% endblock %}

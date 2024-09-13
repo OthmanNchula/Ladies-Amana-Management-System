@@ -127,7 +127,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Media files (uploads)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
 CRISPY_TEMPLATE_PACK = "bootstrap4"
@@ -138,19 +138,11 @@ LOGIN_REDIRECT_URL = 'login_App:login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# settings.py
-
 import os
-import logging.config
 
-# Activate Django's debug mode during development
-DEBUG = True
-
-# Setup logging configuration
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,  # Keep existing loggers
+    'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
             'format': '{levelname} {asctime} {module} {message}',
@@ -163,22 +155,18 @@ LOGGING = {
     },
     'handlers': {
         'file': {
-            'level': 'DEBUG',  # Set the log level to DEBUG for detailed logs
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'debug.log'),  # Log file location
-            'formatter': 'verbose',  # Use verbose formatter
+            'filename': os.path.join(BASE_DIR, 'debug.log'),  # Log file will be saved as debug.log in the root of the project
+            'formatter': 'verbose',  # Use the verbose format
         },
+
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],  # Log to both file and console
-            'level': 'DEBUG',  # Capture DEBUG and above levels
-            'propagate': True,  # Ensure logs propagate to the root logger
-        },
-        'django.db.backends': {
-            'handlers': ['file'],  # Log database queries to the file
+            'handlers': ['file'],
             'level': 'DEBUG',
-            'propagate': False,  # Don't propagate to higher loggers
+            'propagate': True,
         },
     },
 }

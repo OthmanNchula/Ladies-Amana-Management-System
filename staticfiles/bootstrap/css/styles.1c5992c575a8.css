@@ -1,0 +1,649 @@
+/* =============================== */
+/*            General Styles        */
+/* =============================== */
+
+* {
+    padding: 0;
+    margin: 0;
+    transition: 0.5s;
+    box-sizing: border-box;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+input {
+    border-color: #ced4da;
+    box-shadow: none;
+}
+
+input:focus {
+    border-color: #D6A2AD !important;
+    box-shadow: 0 0 0 0.2rem rgba(214, 162, 173, 0.25) !important;
+}
+
+.body-content {
+    padding-bottom: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .navbar {
+        height: 60px;
+    }
+
+    .navbar-nav .nav-item .nav-link {
+        font-size: 16px;
+    }
+
+    .register-section h1,
+    .register-section legend {
+        font-size: 24px;
+    }
+
+    .footer-section {
+        padding: 10px 0;
+    }
+}
+
+/* Header styling for desktop view (default) */
+h1 {
+    font-size: 2.5rem;
+    text-align: center;
+}
+
+/* Responsive styling for mobile view */
+@media (max-width: 576px) {
+    h1 {
+        font-size: 1.75rem; /* Reduce the font size for smaller screens */
+        line-height: 1.2; /* Adjust the line height for better spacing */
+    }
+}
+
+
+/* =============================== */
+/*            Navbar Styles         */
+/* =============================== */
+
+nav {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    background-color: #D6A2AD;
+    color: black;
+    height: 8vh;
+    position: relative; 
+}
+
+nav .links {
+    display: flex;
+}
+
+nav .links a {
+    padding: 10px;
+    color: black;
+    text-decoration: none;
+}
+
+#mobile-menu-btn {
+    display: none;
+    color: black;
+}
+
+/* Mobile menu styling */
+.mobile-menu {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 50vw;
+    background-color: #ffffff;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 20px;
+    margin-top: 72px;
+    z-index: 1000;
+    opacity: 0.95;
+    overflow-y: auto;
+}
+
+.menu-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.mobile-menu a, 
+.mobile-menu .nav-link,
+.logout-button {
+    color: black;
+    text-decoration: none;
+    padding: 15px 0;
+    margin: 5px 0;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s;
+    box-shadow: 0 5px 1px rgba(0, 0, 0, 0.1);
+    border: none;
+    background: none;
+}
+
+.logout-form {
+    display: block;
+    width: 100%;
+}
+
+.mobile-menu a:hover,
+.mobile-menu .nav-link:hover,
+.logout-button:hover {
+    background-color: #D6A2AD;
+}
+
+.mobile-menu a.active,
+.mobile-menu .nav-link.active,
+.logout-button.active {
+    background-color: #D6A2AD;
+    color: white;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+}
+
+body.menu-open {
+    overflow: hidden;
+}
+
+@media (max-width: 600px) {
+    #mobile-menu-btn {
+        display: block;
+        cursor: pointer;
+        z-index: 1500;
+    }
+
+    nav .links {
+        display: none;
+    }
+
+    .mobile-menu {
+        display: none;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+}
+
+/* =============================== */
+/* Additional Page Styles */
+/* =============================== */
+
+/* For table display */
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.table th,
+.table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody + tbody {
+    border-top: 2px solid #dee2e6;
+}
+
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #dee2e6;
+}
+
+.table-bordered thead th,
+.table-bordered thead td {
+    border-bottom-width: 2px;
+}
+
+/* =============================== */
+/* User Dashboard Styles */
+/* =============================== */
+
+/* Welcome Text */
+.welcome-text {
+    font-size: 2.5rem; /* Default large screen size */
+    max-width: 80%; /* To ensure it doesn't take the full width */
+    margin: 0 auto; /* Center it horizontally */
+}
+
+@media (max-width: 768px) {
+    .welcome-text {
+        font-size: 2rem; /* Smaller font size for tablets */
+        max-width: 90%; /* Slightly wider for smaller screens */
+    }
+}
+
+@media (max-width: 576px) {
+    .welcome-text {
+        font-size: 1.5rem; /* Even smaller font size for phones */
+        max-width: 100%; /* Full width on very small screens */
+    }
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    background-color: #F4E1E6;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+/* Card Custom Styling */
+.card-custom {
+    border-radius: 15px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #D6A2AD;
+    margin: 10px 0;
+}
+
+/* Card title */
+.card-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+/* Adjustments for Mobile */
+@media (max-width: 767px) {
+    .card-custom {
+        margin-bottom: 15px;
+    }
+
+    .card-title {
+        font-size: 1rem; /* Smaller font size for card titles on mobile */
+    }
+}
+
+
+/* =============================== */
+/*      Mtaji Page Styles           */
+/* =============================== */
+
+/* Dropdown Wrapper */
+.custom-select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+/* Dropdown Styling */
+#year-select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #B76C79;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #000000;
+    font-size: 14px;
+}
+
+select::-ms-expand {
+    display: none;
+}
+
+#year-select option {
+    padding: 8px;
+    background-color: white;
+    color: black;
+}
+
+#year-select option:checked, 
+#year-select option:focus, 
+#year-select option:hover {
+    background-color: #fff;
+    color: black;
+    outline: none;
+}
+
+@media (max-width: 600px) {
+    #year-select {
+        width: 80%;
+        padding: 4px;
+        font-size: 14px;
+    }
+}
+
+/* Table styling remains the same */
+.mtaji-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mtaji-table th, .mtaji-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.mtaji-table th {
+    background-color: #f2f2f2;
+    color: black;
+}
+
+.mtaji-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.mtaji-table tr:hover {
+    background-color: #ddd;
+}
+
+.mtaji-table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: #D6A2AD;
+    color: white;
+}
+
+/* =============================== */
+/*      Horizontal Navbar for Years */
+/* =============================== */
+
+/* Make the navbar for years horizontally scrollable */
+.year-navbar {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden; /* Prevent vertical scrolling */
+    scrollbar-width: thin; /* For Firefox */
+    -webkit-overflow-scrolling: touch; /* For smooth scrolling on mobile */
+}
+
+/* Hide the scrollbar */
+.year-navbar::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Opera */
+}
+
+/* Styling for the year navbar items */
+.year-navbar .nav-item {
+    margin-right: 15px;
+    white-space: nowrap; /* Prevent year items from breaking onto new lines */
+}
+
+/* Adjustments for mobile view */
+@media (max-width: 768px) {
+    .year-navbar {
+        overflow-y: hidden; /* Disable vertical scrolling */
+        height: auto; /* Ensure the height doesn't exceed its contents */
+    }
+
+    .navbar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap; /* Ensure that items are displayed inline */
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling for mobile */
+    }
+
+    .nav-item {
+        flex: 0 0 auto; /* Ensure items don’t shrink */
+        white-space: nowrap; /* Prevent line breaks */
+    }
+
+    .navbar-nav .nav-item .nav-link {
+        font-size: 14px;
+    }
+}
+
+
+
+/* =============================== */
+/*        loan_request Styles         */
+/* =============================== */
+
+/* Make the navbar horizontally scrollable */
+.horizontal-scrollable {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin; /* For Firefox */
+}
+
+/* Hide the default scrollbar */
+.horizontal-scrollable::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Opera */
+}
+
+/* Add spacing to the navbar items */
+.horizontal-scrollable .nav-item {
+    margin-right: 15px;
+}
+
+/* Adjust the navbar for mobile view */
+@media (max-width: 768px) {
+    .navbar-nav {
+        flex-direction: row;
+    }
+
+    .nav-item {
+        white-space: nowrap; /* Prevent breaking of text in small screens */
+    }
+}
+
+/* Styling for the navigation links */
+#loan-nav {
+    white-space: nowrap;
+    overflow-x: auto;
+    display: flex;
+    justify-content: space-around;
+}
+
+/* Styling the nav items */
+#loan-nav .nav-link {
+    padding: 10px 15px;
+    white-space: nowrap;
+}
+
+/* On large screens, the nav items are shown horizontally */
+@media (min-width: 992px) {
+    #loan-nav {
+        justify-content: space-between;
+    }
+}
+
+/* =============================== */
+/*        Admin Page Styles         */
+/* =============================== */
+
+/* =============================== */
+/* Sidebar Styles */
+/* =============================== */
+
+/* Apply scroll lock only to the admin page */
+body.admin-page, html.admin-page {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Ensure the body does not scroll only for admin pages */
+}
+
+/* Sidebar Styles */
+.wrapper {
+    display: flex;  
+    height: 100vh; /* Full height of the viewport */
+    overflow: hidden; /* Prevent any extra scrollbars */
+}
+
+.sidebar {
+    width: 210px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 5%), 0 2px 10px 0 rgb(0 0 0 / 5%);
+    position: fixed;
+    top: 50px; /* Align with the top navbar */
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+    z-index: 600;
+    height: calc(100vh - 60px); 
+    padding-top: 10px;
+    padding-left: 0; /* Remove left padding */
+    padding-right: 0;
+    margin-left: 0; /* Remove any margin */
+    transition: transform 0.3s ease, width 0.3s ease;
+}
+
+/* Adjusting sidebar collapse button */
+.collapse-btn {
+    background-color: #fefefe;
+    color: rgb(0, 0, 0);
+    width: 100%;
+    text-align: right;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    border-radius: 0;
+    position: absolute; /* Ensure it stays at the top */
+    top: 0; /* This will place it right after the navbar */
+    left: 0; /* Align it to the left */
+    z-index: 601; /* Ensure it stays above other content */
+    margin-bottom: 10px;
+}
+
+/* Sidebar Items */
+.sidebar .list-group-item {
+    padding: 10px 15px;
+    color: #333;
+}
+
+.sidebar .list-group-item.active {
+    background-color: #D6A2AD;
+    color: white;
+}
+
+.sidebar .list-group-item:hover {
+    background-color: #D6A2AD;
+    color: white;
+}
+
+.sidebar .list-group-item img {
+    margin-right: 10px;
+}
+
+/* Main Content Adjustments */
+.main-content {
+    margin-left: 210px;
+    padding: 15px;
+    flex: 1;
+    overflow-y: auto;
+    height: calc(100vh - 70px); /* Adjust for the navbar height */
+    box-sizing: border-box;
+}
+
+/* Sidebar Collapsed */
+.sidebar.collapsed {
+    width: 80px; /* Collapsed sidebar width */
+    transition: width 0.3s ease;
+}
+
+.sidebar.collapsed .list-group-item span {
+    display: none;
+}
+
+.sidebar.collapsed .list-group-item i {
+    margin-right: 0;
+}
+
+/* =============================== */
+/* Sidebar Styles (Visible on large screens only) */
+/* =============================== */
+
+/* Main Content Adjustments */
+.main-content {
+    margin-left: 210px;
+    padding: 15px;
+    flex: 1;
+    overflow-y: auto;
+    height: calc(100vh - 70px); /* Adjust for the navbar height */
+    box-sizing: border-box;
+}
+
+/* Hide sidebar on mobile */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+/* =============================== */
+/*        Admin dashboard Styles         */
+/* =============================== */
+
+/* Ensure cards are displayed in two columns on mobile */
+@media (max-width: 768px) {
+    .col-md-4 {
+        flex: 0 0 50%; /* Each card will take up 50% width */
+        max-width: 50%;
+    }
+
+    .card {
+        margin-bottom: 15px; /* Add some space between the cards */
+    }
+}
+
+/* Optional: Adjust padding for smaller cards to make them fit better */
+@media (max-width: 600px) {
+    .card {
+        padding: 10px;
+    }
+}
+
+/* =============================== */
+/* Michango Page Table Styles       */
+/* =============================== */
+
+.michango-table-container {
+    width: 100%;  /* Ensure the container takes the full width */
+    overflow-x: auto;  /* Allow horizontal scrolling if the table is too wide */
+    padding: 0;  /* Remove any unnecessary padding */
+}
+
+.michango-table {
+    width: 100%;  /* Ensure the table takes the full width */
+    table-layout: auto;  /* Ensure columns are dynamically adjusted */
+    max-width: none;  /* Remove any max-width restrictions */
+}
+
+.michango-table th, .michango-table td {
+    word-wrap: break-word; /* Ensure content doesn't overflow */
+    padding: 0.75rem;
+}
+

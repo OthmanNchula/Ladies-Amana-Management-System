@@ -215,7 +215,10 @@ def manage_mchango(request, user_id):
     # Define months in Kiswahili
     months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     
-    months_with_data = {month: michango_entries.get(month=index+1).amount if michango_entries.filter(month=index+1).exists() else 0 for index, month in enumerate(months)}
+    months_with_data = {
+        month: michango_entries.filter(month=index+1).first().amount if michango_entries.filter(month=index+1).exists() else 0
+        for index, month in enumerate(months)
+    }
 
     context = {
         'managed_user': user,
