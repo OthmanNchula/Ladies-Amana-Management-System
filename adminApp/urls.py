@@ -4,6 +4,11 @@ from . import views
 app_name = 'admin_App'
 
 urlpatterns = [
+    # notification
+    path('notifications/', views.notifications, name='notifications'),
+    path('notifications/read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    
+    # login
     path('login/', views.admin_login, name='admin_login'),
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('superuser-login/', views.superuser_login_view, name='superuser_login'),

@@ -647,3 +647,33 @@ body.admin-page, html.admin-page {
     padding: 0.75rem;
 }
 
+
+/* =============================== */
+/* notification */
+/* =============================== */
+
+.notification-bell {
+    position: relative;
+    color: white;
+    text-decoration: none;
+}
+
+.notification-bell .badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: red;
+    color: white;
+    padding: 5px;
+    border-radius: 50%;
+    font-size: 12px;
+}
+
+
+/* =============================== */
+/* spinner */
+/* =============================== */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}

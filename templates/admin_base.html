@@ -7,6 +7,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}" />
     <link rel="stylesheet" href="{% static 'bootstrap/css/styles.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
 </head>
@@ -82,6 +83,11 @@
             {% endif %}
             {% block content %}
             {% endblock %}
+        </div>
+    </div>
+    <div id="loading-spinner" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;"></div>
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
         </div>
     </div>
     {% include 'footer.html' %}
@@ -174,7 +180,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleSubmenuArrows(); // Initial call to set correct arrow direction
 });
+document.addEventListener('DOMContentLoaded', function() {
+            // Get all notification links
+            const notificationLinks = document.querySelectorAll('.notification-link');
 
+            // Loop through all notification links and add a click event listener
+            notificationLinks.forEach(function(link) {
+                link.addEventListener('click', function(event) {
+                    // Show the loading spinner
+                    document.getElementById('loading-spinner').style.display = 'block';
+                });
+            });
+        });
+
+        // Hide spinner when the page finishes loading
+        window.addEventListener('load', function() {
+            document.getElementById('loading-spinner').style.display = 'none';
+        });
 </script>
 
 </html>

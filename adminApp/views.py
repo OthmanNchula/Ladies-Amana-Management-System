@@ -27,22 +27,36 @@ from decimal import Decimal
 from django.db import transaction, IntegrityError
 from django.db.models import Q
 from django.db import transaction
-
+from django.conf import settings
+from .models import Notification
+from django.urls import reverse
 
 def admin_login(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
+        
+        # Authenticate the user with username and password
         user = authenticate(request, username=username, password=password)
+        
+        # Check if the user is valid and is a staff member
         if user is not None and user.is_staff:
             login(request, user)
             return redirect('admin_App:admin_dashboard')
         else:
             messages.error(request, 'Invalid credentials or not authorized.')
+    
     return render(request, 'adminApp/admin_login.html')
+
 
 def admin_dashboard(request):
     context = get_dashboard_context()
+    # Fetch unread notifications count for the logged-in admin
+    unread_notifications_count = Notification.objects.filter(admin=request.user, is_read=False).count()
+    
+    # Add unread notifications count to the context
+    context['unread_notifications_count'] = unread_notifications_count
+    
     context['show_back_button'] = False
     return render(request, 'adminApp/dashboard.html', context)
 
@@ -125,6 +139,32 @@ def view_payment_images(request, user_id):
     }
     return render(request, 'adminApp/view_payment_images.html', context)    
 
+
+@login_required(login_url='/account/login/')
+def notifications(request):
+    # Fetch only unread notifications for the admin
+    notifications = Notification.objects.filter(admin=request.user, is_read=False).order_by('-created_at')
+
+    context = {
+        'notifications': notifications,  # Only contains unread notifications
+        'show_back_button': True,
+    }
+    return render(request, 'adminApp/notifications.html', context)
+
+
+@login_required(login_url='/account/login/')
+def mark_notification_as_read(request, notification_id):
+    # Get the notification by ID and ensure it's for the current admin
+    notification = get_object_or_404(Notification, id=notification_id, admin=request.user)
+
+    # Mark the notification as read
+    notification.is_read = True
+    notification.save()
+
+    # Redirect to the view payment image page
+    return redirect(reverse('admin_App:view_payment_images', args=[notification.payment_screenshot.user.id]))
+
+
 @login_required(login_url='/account/login/')
 def view_member_details(request, user_id):
     member = get_object_or_404(User, id=user_id)
@@ -137,6 +177,7 @@ def view_member_details(request, user_id):
     }
     return render(request, 'adminApp/view_member_details.html', context)
 
+
 @login_required(login_url='/account/login/')
 def delete_member(request, user_id):
     member = get_object_or_404(User, id=user_id)
@@ -145,7 +186,6 @@ def delete_member(request, user_id):
     return render(request, 'adminApp/members.html', {'users': members, 'show_back_button': False})
 
 # Mtaji
-
 @login_required(login_url='/account/login/')
 def manage_mtaji(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -153,7 +193,6 @@ def manage_mtaji(request, user_id):
     # Generate years from 2018 to the current year
     years = [year for year in range(2018, timezone.now().year + 1)]
     current_year = timezone.now().year
-    
     selected_year = int(request.GET.get('year', current_year))
 
     try:
@@ -163,6 +202,11 @@ def manage_mtaji(request, user_id):
         current_amount = 0
 
     if request.method == 'POST':
+         # Check if the current user is admin1 and block updates if true
+        if request.user.username == 'admin1':
+            messages.error(request, "You are not authorized to update Mtaji data.")
+            return redirect('admin_App:manage_mtaji', user_id=user.id)
+        
         amount = request.POST.get('amount_{}'.format(selected_year))
         if amount:
             mtaji, created = Mtaji.objects.update_or_create(
@@ -241,17 +285,22 @@ def save_mchango(request, user_id):
     modified_months = []  # Track modified months
 
     if request.method == 'POST':
+        if request.user.username == 'admin1':
+            messages.error(request, "You are not authorized to update Michango data.")
+            return redirect('admin_App:manage_mchango', user_id=user.id)
+        
         try:
             with transaction.atomic():
                 for month in months:
                     amount = request.POST.get(f'amount_{month}')
                     if amount:
+                        cleaned_amount = int(amount.replace(',', ''))
                         month_number = months.index(month) + 1
                         try:
                             michango = Michango.objects.get(user=user, year=current_year, month=month_number)
                             # Check if the amount has actually changed
-                            if michango.amount != int(amount):
-                                michango.amount = int(amount)
+                            if michango.amount != cleaned_amount:
+                                michango.amount = cleaned_amount
                                 michango.save(modified_by=request.user)
                                 modified_months.append(month)  # Only log changed months
                         except Michango.DoesNotExist:
@@ -260,7 +309,7 @@ def save_mchango(request, user_id):
                                 user=user,
                                 year=current_year,
                                 month=month_number,
-                                amount=int(amount),
+                                amount=cleaned_amount,
                                 modified_by=request.user
                             )
                             modified_months.append(month)  # Log the new month
@@ -271,7 +320,6 @@ def save_mchango(request, user_id):
         return redirect('admin_App:manage_mchango', user_id=user.id)
 
     return redirect('admin_App:manage_user', user_id=user.id)
-
 
 
 @login_required(login_url='/account/login/')
@@ -293,6 +341,10 @@ def manage_swadaqa(request, user_id):
 
     # Handle form submission
     if request.method == 'POST':
+        if request.user.username == 'admin1':
+            messages.error(request, "You are not authorized to update Swadaqa data.")
+            return redirect('admin_App:manage_swadaqa', user_id=user.id)
+        
         amount = request.POST.get('amount_{}'.format(selected_year))  # Use selected_year instead of current_year
         if amount:
             swadaqa, created = Swadaqa.objects.update_or_create(
@@ -382,6 +434,10 @@ def process_loan_request(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
     if request.method == 'POST':
+        if request.user.username == 'admin1':
+            messages.error(request, "You are not authorized to process loan requests.")
+            return redirect('admin_App:manage_mkopo', user_id=user.id)
+        
         decision = request.POST.get('decision')
         
         # Retrieve all pending loans for the user
@@ -433,6 +489,10 @@ def loan_payments_view(request, user_id):
     total_payments = LoanPayment.objects.filter(loan=current_loan).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.0')
 
     if request.method == 'POST':
+        if request.user.username == 'admin1':
+            messages.error(request, "You are not authorized to add loan payments.")
+            return redirect('admin_App:manage_mkopo', user_id=user_id)
+        
         payment_date = request.POST.get('payment_date')
         amount = request.POST.get('amount')
 
@@ -908,7 +968,7 @@ def reject_change(request, change_id):
 
 @login_required(login_url='/account/login/')
 def verified_actions(request):
-    if request.user.username == 'admin1':
+    if request.user.is_staff:
         # Fetch all verified changes, ordered by the latest verified date.
         verified_changes = VerifiedChanges.objects.select_related('pending_change').order_by('-verified_at')
 
@@ -927,7 +987,7 @@ def verified_actions(request):
 
 @login_required(login_url='/account/login/')
 def rejected_actions(request):
-    if request.user.username == 'admin1':
+    if request.user.is_staff:
         # Retrieve all rejected actions where pending_change is not None, ordered by the latest rejected date.
         rejected_actions = RejectedChanges.objects.filter(pending_change__isnull=False).select_related('pending_change').order_by('-rejected_at')
 

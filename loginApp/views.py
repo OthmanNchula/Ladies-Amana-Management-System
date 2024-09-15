@@ -10,6 +10,9 @@ from .forms import EditInfoForm
 from .models import Profile
 from .forms import PaymentScreenshotForm
 from .models import PaymentScreenshot
+from django.contrib.auth.views import PasswordResetConfirmView
+from django.urls import reverse_lazy
+from adminApp.models import Notification
 
 
 def generate_unique_username(first_name, last_name):
@@ -114,6 +117,16 @@ def upload_payment_image(request):
             payment_screenshot = form.save(commit=False)
             payment_screenshot.user = request.user
             payment_screenshot.save()
+            
+             # Create notifications for all admins
+            admins = User.objects.filter(is_staff=True)
+            for admin in admins:
+                Notification.objects.create(
+                    admin=admin,
+                    message=f"New payment image uploaded by {request.user.username}",
+                    payment_screenshot=payment_screenshot
+                )
+                
             messages.success(request, 'Image uploaded successfully.')
             return render(request, 'loginApp/upload_payment_image.html', {'form': form}) # Redirect to user dashboard or another page
     else:
@@ -138,3 +151,8 @@ def delete_payment_image(request, image_id):
         messages.success(request, "Payment screenshot deleted successfully.")
 
     return redirect('login_App:payment_images')
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'loginApp/password_reset_form.html'
+    success_url = reverse_lazy('login_App:password_reset_complete')
