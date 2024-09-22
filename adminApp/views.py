@@ -46,7 +46,7 @@ def admin_login(request):
         else:
             messages.error(request, 'Invalid credentials or not authorized.')
     
-    return render(request, 'adminApp/admin_login.html')
+    return render(request, 'adminApp/admin_login.html', context={'is_login_page': True})
 
 
 def admin_dashboard(request):

@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
-from loginApp import views
 from loginApp import views as login_views
 from django.conf.urls.static import static
 from django.conf import settings
+from django.urls import re_path
+from django.views.static import serve
 
 
 urlpatterns = [
@@ -16,6 +17,10 @@ urlpatterns = [
     path('mtaji/', include('mtajiApp.urls', namespace="mtaji_App")),
     path('mchango/', include('michangoApp.urls', namespace="mchango_App")),
     path('swadaqa/', include('swadaqaApp.urls', namespace='swadaqa_App')),
+    
+    
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    
 ]
 
 if settings.DEBUG:

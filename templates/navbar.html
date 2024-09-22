@@ -5,10 +5,14 @@
         Ladies Amana
     </div>
     <div class="links">
-        {% if user.is_authenticated %}
+        {% if is_login_page %}
+            <!-- Show these links when on the login page -->
+            <a href="{% url 'login_App:register' %}">Register</a>
+            <a href="{% url 'login_App:login' %}">Login</a>
+            <a href="{% url 'admin_App:admin_login' %}">Admin</a>
+        {% elif user.is_authenticated %}
             {% if user.is_staff %}
                 <!-- Add staff-specific links here if needed -->
-                
             {% else %}
                 <a href="{% url 'login_App:user_dashboard' %}">Dashboard</a>
                 <a href="{% url 'mtaji_App:mtaji' %}">Mtaji</a>
@@ -16,8 +20,6 @@
                 <a href="{% url 'swadaqa_App:swadaqa' %}">Swadaqa</a>
                 <a href="{% url 'mkopo_App:loan_request' %}">Mkopo</a>
             {% endif %}
-        {% endif %}
-        {% if user.is_authenticated %}
             <a href="{% url 'admin_App:notifications' %}" class="notification-bell">
                 <i class="fa fa-bell"></i>
                 {% if unread_notifications_count > 0 %}
@@ -30,6 +32,7 @@
                 <button type="submit" class="nav-link btn btn-link" style="color:black; text-decoration:none;">Logout</button>
             </form>
         {% else %}
+            <!-- Fallback for non-authenticated users on other pages -->
             <a href="{% url 'login_App:register' %}">Register</a>
             <a href="{% url 'login_App:login' %}">Login</a>
             <a href="{% url 'admin_App:admin_login' %}">Admin</a>
@@ -40,7 +43,12 @@
 
 <!-- Small Screen Navigation Bar -->
 <div class="mobile-menu">
-    {% if user.is_authenticated %}
+    {% if is_login_page %}
+        <!-- Show these links when on the login page -->
+        <a href="{% url 'login_App:register' %}">Register</a>
+        <a href="{% url 'login_App:login' %}">Login</a>
+        <a href="{% url 'admin_App:admin_login' %}">Admin</a>
+    {% elif user.is_authenticated %}
         {% if user.is_staff %}
             <!-- Admin-specific sidebar content for mobile menu -->
             <a href="{% url 'admin_App:notifications' %}" class="notification-bell">
@@ -95,7 +103,14 @@
                 <span>Verification</span>
             </a>
             {% endif %}
+            <form method="post" action="{% url 'login_App:logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="nav-link logout-button" style="color:black; text-decoration:none;">
+                    <span>Logout</span>
+                </button>
+            </form>
         {% else %}
+            <!-- Show links for regular users -->
             <a href="{% url 'login_App:user_dashboard' %}">
                 <img src="{% static 'images/dashboard_icon.png' %}" alt="Dashboard" style="width: 20px; margin-right: 10px;">
                 <span>Dashboard</span>
@@ -116,28 +131,14 @@
                 <img src="{% static 'images/mkopo_icon.png' %}" alt="Mkopo" style="width: 20px; margin-right: 10px;">
                 <span>Mkopo</span>
             </a>
+            <a href="{% url 'login_App:edit_info' %}">Edit Info</a>
+            <form method="post" action="{% url 'login_App:logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="nav-link logout-button" style="color:black; text-decoration:none;">
+                    <span>Logout</span>
+                </button>
+            </form>
         {% endif %}
-    {% endif %}
-    {% if user.is_authenticated %}
-        <a href="{% url 'login_App:edit_info' %}">
-            <span>Edit Info</span>
-        </a>
-        <form method="post" action="{% url 'login_App:logout' %}" class="logout-form">
-            {% csrf_token %}
-            <button type="submit" class="nav-link logout-button" style="color:black; text-decoration:none;">
-                <span>Logout</span>
-            </button>
-        </form>
-    {% else %}
-        <a href="{% url 'login_App:register' %}">
-            <span>Register</span>
-        </a>
-        <a href="{% url 'login_App:login' %}">
-            <span>Login</span>
-        </a>
-        <a href="{% url 'admin_App:admin_login' %}">
-            <span>Admin</span>
-        </a>
     {% endif %}
 </div>
 
@@ -153,13 +154,13 @@
     mobileMenuBtn.addEventListener("click", () => {
         if (mobileMenu.style.display === "none" || mobileMenu.style.display === "") {
             mobileMenu.style.display = "flex";
-            mobileMenuBtn.innerHTML = "Close";
             overlay.style.display = "block";  // Show overlay
+            mobileMenuBtn.style.display = "none";  // Hide the Menu button
             document.body.classList.add('menu-open');  // Prevent scrolling
         } else {
             mobileMenu.style.display = "none";
-            mobileMenuBtn.innerHTML = "Menu";
             overlay.style.display = "none";  // Hide overlay
+            mobileMenuBtn.style.display = "block";  // Show the Menu button again
             document.body.classList.remove('menu-open');  // Allow scrolling
         }
     });
@@ -167,10 +168,8 @@
     // Hide the menu and overlay if user clicks outside the menu (on the overlay)
     overlay.addEventListener("click", () => {
         mobileMenu.style.display = "none";
-        mobileMenuBtn.innerHTML = "Menu";
         overlay.style.display = "none";
+        mobileMenuBtn.style.display = "block";  // Show the Menu button again
         document.body.classList.remove('menu-open');  // Allow scrolling
     });
 </script>
-
-

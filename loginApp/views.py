@@ -59,7 +59,7 @@ def register(request):
         else:
             error = 'Your password is not strong enough or both passwords must be the same'
 
-    return render(request, 'loginApp/register.html', context={'form': form, 'error': error})
+    return render(request, 'loginApp/register.html', context={'form': form, 'is_login_page': True, 'error': error})
 
 # Login view
 def login_view(request):
@@ -77,7 +77,7 @@ def login_view(request):
                 return redirect(reverse('login_App:user_dashboard'))
             else:
                 messages.error(request, 'Invalid first name, last name or password')
-    return render(request, 'loginApp/login.html', context={'form': form})
+    return render(request, 'loginApp/login.html', context={'form': form, 'is_login_page': True})
 
 # User dashboard view
 @login_required(login_url='/account/login/')
