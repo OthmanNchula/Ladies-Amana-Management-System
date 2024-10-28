@@ -1,8 +1,16 @@
 {% extends 'admin_base.html' %}
 {% load static %}
 {% load humanize %}
+
 {% block content %}
 <div class="container mt-3">
+    <!-- Back Button -->
+    {% if show_back_button %}
+    <a href="{% url 'admin_App:mitaji' %}" class="btn back-button" style="background-color: #D6A2AD">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+    {% endif %}
+
     <!-- Title -->
     <h1 class="text-center">Manage {{ managed_user.username }}'s Mtaji</h1>
 
@@ -24,7 +32,7 @@
     <!-- Mtaji Form and Table -->
     <div class="row mt-3">
         <div class="col-md-12">
-            <form method="post">
+            <form method="post" action="{% url 'admin_App:manage_mtaji' managed_user.id %}?year={{ current_year }}">
                 {% csrf_token %}
                 <div class="table-responsive mx-auto" style="max-width: 400px;">
                     <table class="table swadaqa-table">

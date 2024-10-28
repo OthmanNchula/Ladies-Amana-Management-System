@@ -183,7 +183,7 @@ def delete_member(request, user_id):
     member = get_object_or_404(User, id=user_id)
     member.delete()
     messages.success(request, 'Member deleted successfully.')
-    return render(request, 'adminApp/members.html', {'users': members, 'show_back_button': False})
+    return redirect(reverse('admin_App:members'))
 
 # Mtaji
 @login_required(login_url='/account/login/')
@@ -216,7 +216,9 @@ def manage_mtaji(request, user_id):
             )
             # Pass the modified_by user (the admin) to the save method
             mtaji.save(modified_by=request.user)
-            return redirect('admin_App:manage_mtaji', user_id=user.id)
+            # Redirect to the same page with the selected year after saving
+            return redirect(f'{reverse("admin_App:manage_mtaji", kwargs={"user_id": user.id})}?year={selected_year}')
+
 
     context = {
         'managed_user': user,
@@ -244,9 +246,7 @@ def mtaji_data(request, user_id, year):
     }
 
     return JsonResponse(data)
-
-
-    
+   
 @login_required(login_url='/account/login/')
 def manage_mchango(request, user_id):
     user = get_object_or_404(User, id=user_id)
@@ -315,11 +315,11 @@ def save_mchango(request, user_id):
                             modified_months.append(month)  # Log the new month
         except IntegrityError:
             messages.error(request, "An error occurred while saving changes. Please try again.")
-            return redirect('admin_App:manage_user', user_id=user.id)
+            return redirect(f'{reverse("admin_App:manage_mchango", kwargs={"user_id": user.id})}?year={current_year}')
 
-        return redirect('admin_App:manage_mchango', user_id=user.id)
+        return redirect(f'{reverse("admin_App:manage_mchango", kwargs={"user_id": user.id})}?year={current_year}')
 
-    return redirect('admin_App:manage_user', user_id=user.id)
+    return redirect(f'{reverse("admin_App:manage_mchango", kwargs={"user_id": user.id})}?year={current_year}')
 
 
 @login_required(login_url='/account/login/')
@@ -343,7 +343,7 @@ def manage_swadaqa(request, user_id):
     if request.method == 'POST':
         if request.user.username == 'admin1':
             messages.error(request, "You are not authorized to update Swadaqa data.")
-            return redirect('admin_App:manage_swadaqa', user_id=user.id)
+            return redirect(f'{reverse("admin_App:manage_swadaqa", kwargs={"user_id": user.id})}?year={selected_year}')
         
         amount = request.POST.get('amount_{}'.format(selected_year))  # Use selected_year instead of current_year
         if amount:
@@ -354,7 +354,7 @@ def manage_swadaqa(request, user_id):
             )
             # Ensure modified_by is set
             swadaqa.save(modified_by=request.user)
-            return redirect('admin_App:manage_swadaqa', user_id=user_id)
+            return redirect(f'{reverse("admin_App:manage_swadaqa", kwargs={"user_id": user.id})}?year={selected_year}')
 
     context = {
         'managed_user': user,

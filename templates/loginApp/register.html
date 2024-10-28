@@ -74,6 +74,13 @@
                         <label for="password2">Confirm Password</label>
                         <input type="password" class="form-control" id="password2" name="password2" required>
                     </div>
+
+                    <!-- Toggle checkbox to show/hide passwords -->
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" id="togglePassword">
+                        <label class="form-check-label" for="togglePassword">Show Password</label>
+                    </div>
+
                     <div class="form-group">
                         <input style="background-color:  #D6A2AD;" class="btn btn-block" type="submit" value="Register">
                     </div>
@@ -85,4 +92,14 @@
         </div>
     </div>
 </section>
+
+<script>
+    document.getElementById('togglePassword').addEventListener('change', function() {
+        const password1 = document.getElementById('password1');
+        const password2 = document.getElementById('password2');
+        const type = this.checked ? 'text' : 'password';
+        password1.type = type;
+        password2.type = type;
+    });
+</script>
 {% endblock %}

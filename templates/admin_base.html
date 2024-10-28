@@ -70,12 +70,7 @@
                 </div>
             </nav>
         {% endif %}
-        <div class="main-content flex-grow-1">
-            {% if show_back_button %}
-                <button class="btn back-button" style="background-color: #D6A2AD" onclick="history.back()">
-                    <i class="fas fa-arrow-left"></i> Back
-                </button>
-            {% endif %}
+        <div class="main-content flex-grow-1">  
             {% if messages %}
                 {% for message in messages %}
                 <p class="text-success text-center">{{ message }}</p>
@@ -180,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleSubmenuArrows(); // Initial call to set correct arrow direction
 });
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
             // Get all notification links
             const notificationLinks = document.querySelectorAll('.notification-link');
 
@@ -197,6 +192,23 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('load', function() {
             document.getElementById('loading-spinner').style.display = 'none';
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+        const backButton = document.getElementById('back-button');
+        
+        if (backButton) {
+            backButton.addEventListener('click', function() {
+                // Check if the referrer is available, otherwise fallback to window.history.back()
+                if (document.referrer) {
+                    window.location.href = document.referrer;
+                } else {
+                    window.history.back();
+                }
+            });
+        }
+     });
+
+
 </script>
 
 </html>

@@ -3,6 +3,13 @@
 {% load humanize %}
 {% block content %}
 <div class="container mt-3">
+    <!-- Back Button -->
+    {% if show_back_button %}
+    <a href="{% url 'admin_App:swadaqas' %}" class="btn back-button" style="background-color: #D6A2AD">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+    {% endif %}
+    
     <h1 class="text-center">Manage {{ managed_user.username }}'s Swadaqa</h1>
 
     <!-- Horizontal Navbar for Years -->
@@ -14,6 +21,7 @@
                     <li class="nav-item" style="margin-right: 15px;">
                         <a href="?year={{ year }}" class="nav-link year-link {% if year == current_year %}active{% endif %}" data-year="{{ year }}">{{ year }}</a>
                     </li>
+                    </li>
                     {% endfor %}
                 </ul>
             </nav>
@@ -22,7 +30,7 @@
 
     <div class="row mt-3">
         <div class="col-md-12">
-            <form method="post">
+            <form method="post" action="{% url 'admin_App:manage_swadaqa' managed_user.id %}?year={{ current_year }}">
                 {% csrf_token %}
                 <div class="table-responsive mx-auto" style="max-width: 400px;">
                     <table class="table swadaqa-table">

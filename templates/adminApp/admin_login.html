@@ -2,6 +2,7 @@
 {% load crispy_forms_filters %}
 {% load static %}
 {% load crispy_forms_tags %}
+
 {% block content %}
 <section class="register-section">
     <div class="register-section-container">
@@ -20,11 +21,16 @@
                             <label for="password" class="form-label">Password</label>
                             <input type="password" name="password" class="form-control" id="password" required>
                         </div>
+                        
+                        <!-- Show Password Toggle -->
                         <div class="form-check mb-3">
-                            <input type="checkbox" class="form-check-input" id="rememberMe" name="remember">
-                            <label class="form-check-label" for="rememberMe">Remember me</label>
+                            <input type="checkbox" class="form-check-input" id="showPasswordToggle">
+                            <label class="form-check-label" for="showPasswordToggle">Show Password</label>
                         </div>
+                        
+                    
                     </fieldset>
+                    
                     <div class="form-group">
                         <input style="background-color: #D6A2AD" class="btn btn-block" type="submit" value="Login">
                     </div>
@@ -34,7 +40,13 @@
         </div>
     </div>
 </section>
+
+<script>
+    document.getElementById('showPasswordToggle').addEventListener('change', function() {
+        const passwordInput = document.getElementById('password');
+        passwordInput.type = this.checked ? 'text' : 'password';
+    });
+</script>
+{% endblock %}
 <!-- admin, primary_admin -->
 <!-- admin2, secondary_Admin -->
-{% endblock %}
-

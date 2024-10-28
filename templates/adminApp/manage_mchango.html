@@ -4,6 +4,13 @@
 {% load humanize %}
 {% load michango_filters %}
 <div class="container">
+    <!-- Back Button -->
+    {% if show_back_button %}
+    <a href="{% url 'admin_App:michango' %}" class="btn back-button" style="background-color: #D6A2AD">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+    {% endif %}
+
     <h1 class="text-center">Manage {{ managed_user.username }}'s Monthly Contributions - <span id="selected-year">{{ current_year }}</span></h1>
 
     <!-- Horizontal Navbar for Years -->
