@@ -1,13 +1,13 @@
 {% extends 'admin_base.html' %}
 {% block content %}
 <div class="container mt-3">
-    <h2 class="text-center">Manage {{ managed_user.username }}'s Account</h2>
+    <h2 class="text-center">Manage {{ display_name }}'s Account</h2>
     <div class="row mt-5 d-flex align-items-stretch">
         <div class="col-md-3 mb-4 d-flex">
             <div class="card text-center border-0 shadow flex-fill d-flex flex-column">
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <h5 class="card-title">Mtaji</h5>
-                    <p class="card-text">Manage mtaji for {{ managed_user.username }}.</p>
+                    <p class="card-text">Manage mtaji for {{ display_name }}.</p>
                     <a href="{% url 'admin_App:manage_mtaji' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Mtaji</a>
                 </div>
             </div>
@@ -16,7 +16,7 @@
             <div class="card text-center border-0 shadow flex-fill d-flex flex-column">
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <h5 class="card-title">Michango ya Kila Mwezi</h5>
-                    <p class="card-text">Manage monthly contributions for {{ managed_user.username }}.</p>
+                    <p class="card-text">Manage monthly contributions for {{ display_name }}.</p>
                     <a href="{% url 'admin_App:manage_mchango' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Michango</a>
                 </div>
             </div>
@@ -25,7 +25,7 @@
             <div class="card text-center border-0 shadow flex-fill d-flex flex-column">
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <h5 class="card-title">Swadaqa</h5>
-                    <p class="card-text">Manage swadaqa for {{ managed_user.username }}.</p>
+                    <p class="card-text">Manage swadaqa for {{ display_name }}.</p>
                     <a href="{% url 'admin_App:manage_swadaqa' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Swadaqa</a>
                 </div>
             </div>
@@ -34,7 +34,7 @@
             <div class="card text-center border-0 shadow flex-fill d-flex flex-column">
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <h5 class="card-title">Mkopo</h5>
-                    <p class="card-text">Manage loans for {{ managed_user.username }}.</p>
+                    <p class="card-text">Manage loans for {{ display_name }}.</p>
                     <a href="{% url 'admin_App:manage_mkopo' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage Mkopo</a>
                 </div>
             </div>
@@ -44,7 +44,7 @@
             <div class="card text-center border-0 shadow flex-fill d-flex flex-column">
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <h5 class="card-title">View Payments Image</h5>
-                    <p class="card-text">View payment screenshots uploaded by {{ managed_user.username }}.</p>
+                    <p class="card-text">View payment screenshots uploaded by {{ display_name }}.</p>
                     <a href="{% url 'admin_App:view_payment_images' managed_user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">View Payments</a>
                 </div>
             </div>
@@ -54,10 +54,10 @@
     <!--buttons for viewing details and deleting account -->
     <div class="row mt-4">
         <div class="col-12 d-flex justify-content-end">
-            <a href="{% url 'admin_App:view_member_details' managed_user.id %}" class="btn mr-2" style="background-color: #D6A2AD;">View {{ managed_user.username }}'s Details</a>
+            <a href="{% url 'admin_App:view_member_details' managed_user.id %}" class="btn mr-2" style="background-color: #D6A2AD;">View {{ display_name }}'s Details</a>
             <form action="{% url 'admin_App:delete_member_account' managed_user.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete {{ managed_user.username }}\'s account?');">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger">Delete {{ managed_user.username }}'s Account</button>
+                <button type="submit" class="btn btn-danger">Delete {{ display_name }}'s Account</button>
             </form>
         </div>
     </div>

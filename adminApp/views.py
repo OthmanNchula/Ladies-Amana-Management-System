@@ -30,6 +30,8 @@ from django.db import transaction
 from django.conf import settings
 from .models import Notification
 from django.urls import reverse
+from .forms import AddMemberForm
+from loginApp.models import Profile  # Import Profile model
 
 def admin_login(request):
     if request.method == 'POST':
@@ -100,6 +102,28 @@ def superuser_login_view(request):
                 messages.error(request, 'Invalid Username or Password')
     return render(request, 'adminApp/admin_login.html')
 
+# add new member
+
+@login_required(login_url='/account/login/')
+def add_member(request):
+    if request.method == 'POST':
+        form = AddMemberForm(request.POST)
+        if form.is_valid():
+            user = form.save()  # Save the User instance first
+            
+            # Ensure the Profile is created after the user is saved
+            Profile.objects.get_or_create(user=user)
+            
+            messages.success(request, 'New member added successfully.')
+            return redirect(reverse('admin_App:members'))
+        else:
+            messages.error(request, 'There was an error with the form. Please check the inputs.')
+    else:
+        form = AddMemberForm()
+    
+    return render(request, 'adminApp/add_member.html', {'form': form})
+
+
 #members
 @login_required(login_url='/account/login/')
 def members(request):
@@ -110,6 +134,9 @@ def members(request):
 def manage_user(request, user_id):
     # Fetch the user by ID
     user = get_object_or_404(User, id=user_id)
+    
+    # Create display name in "First_Last" format
+    display_name = f"{user.first_name}_{user.last_name}".strip()
 
     # Start with the 'loans' data
     loans = Loan.objects.filter(user=user)
@@ -120,6 +147,7 @@ def manage_user(request, user_id):
     # Check if it works fine with just loans
     context = {
         'managed_user': user,
+        'display_name': display_name,
         'loans': loans,
         'mtaji': mtaji,
         'michango': michango,
@@ -189,6 +217,9 @@ def delete_member(request, user_id):
 @login_required(login_url='/account/login/')
 def manage_mtaji(request, user_id):
     user = get_object_or_404(User, id=user_id)
+    
+    # Create display name in "First_Last" format
+    display_name = f"{user.first_name}_{user.last_name}".strip()
 
     # Generate years from 2018 to the current year
     years = [year for year in range(2018, timezone.now().year + 1)]
@@ -222,6 +253,7 @@ def manage_mtaji(request, user_id):
 
     context = {
         'managed_user': user,
+        'display_name': display_name,
         'years': years,
         'current_year': selected_year,
         'current_amount': current_amount,
@@ -252,6 +284,9 @@ def manage_mchango(request, user_id):
     user = get_object_or_404(User, id=user_id)
     current_year = timezone.now().year
     
+    # Create display name in "First_Last" format
+    display_name = f"{user.first_name}_{user.last_name}".strip()
+    
     # Fetch Michango data for the selected user and year
     selected_year = int(request.GET.get('year', current_year))
     michango_entries = Michango.objects.filter(user=user, year=selected_year)
@@ -266,6 +301,7 @@ def manage_mchango(request, user_id):
 
     context = {
         'managed_user': user,
+        'display_name': display_name,
         'current_year': selected_year,
         'years': range(2018, timezone.now().year + 1),
         'months_with_data': months_with_data.items(),
@@ -326,6 +362,9 @@ def save_mchango(request, user_id):
 def manage_swadaqa(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
+     # Create display name in "First_Last" format
+    display_name = f"{user.first_name}_{user.last_name}".strip()
+    
     # Create a list of years
     years = [year for year in range(2018, timezone.now().year + 1)]
     current_year = timezone.now().year
@@ -358,6 +397,7 @@ def manage_swadaqa(request, user_id):
 
     context = {
         'managed_user': user,
+        'display_name': display_name,
         'years': years,
         'current_year': selected_year,  # Ensure this reflects the selected year
         'current_amount': current_amount,
@@ -444,6 +484,7 @@ def process_loan_request(request, user_id):
         loan_requests = Loan.objects.filter(user=user, status='Pending')
 
         if loan_requests.exists():
+            display_name = f"{user.first_name}_{user.last_name}".strip()
             # Process each loan request (if more than one, process each or decide on other logic)
             for loan_request in loan_requests:
                 # Change loan status to 'Pending Verification'
@@ -452,7 +493,7 @@ def process_loan_request(request, user_id):
 
                 # Prepare the data to be logged
                 data = {
-                    'user': loan_request.user.username,
+                    'user': loan_request.user.display_name,
                     'loan_id': loan_request.id,
                     'original_status': 'Pending',
                     'new_status': 'Approved' if decision == 'accept' else 'Rejected',
@@ -559,9 +600,10 @@ def mitaji_view(request):
     for member in members:
         mtaji = Mtaji.objects.filter(user=member, year=selected_year).first()
         amount = mtaji.amount if mtaji else 0
+        display_name = f"{member.first_name}_{member.last_name}".strip()
         members_mtaji.append({
             'user_id': member.id,
-            'username': member.username,
+            'display_name': display_name,
             'amount': amount
         })
 
@@ -599,9 +641,10 @@ def michango_view(request):
     members_michango = []
     for member in members:
         member_michango_by_month = [Michango.objects.filter(user=member, year=selected_year, month=i+1).aggregate(Sum('amount'))['amount__sum'] or 0 for i in range(12)]
+        display_name = f"{member.first_name}_{member.last_name}".strip()
         members_michango.append({
             'user_id': member.id,
-            'username': member.username,
+            'display_name': display_name,
             'michango_by_month': member_michango_by_month
         })
 
@@ -630,9 +673,10 @@ def swadaqa_view(request):
     for member in members:
         swadaqa = Swadaqa.objects.filter(user=member, year=selected_year).first()
         amount = swadaqa.amount if swadaqa else 0
+        display_name = f"{member.first_name}_{member.last_name}".strip()
         members_swadaqa.append({
             'user_id': member.id,
-            'username': member.username,
+            'display_name': display_name,
             'amount': amount
         })
 
@@ -652,6 +696,12 @@ def members_loans(request):
     current_year = datetime.now().year
     selected_year = int(request.GET.get('year', current_year))
     
+    # Get total loans for the selected year
+    total_year_loans = Loan.objects.filter(status='Approved', date__year=selected_year).aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    # Get total loans for all years
+    total_loans_all_years = Loan.objects.filter(status='Approved').aggregate(Sum('amount'))['amount__sum'] or 0
+
     members = User.objects.filter(is_staff=False, is_superuser=False).annotate(
         total_loan=Sum(
             Case(
@@ -667,22 +717,20 @@ def members_loans(request):
         loan = Loan.objects.filter(user=member, status='Approved', date__year=selected_year).first()
         loan_status = 'No Loan' if loan is None else 'Approved'
         loan_amount = 0 if loan is None else loan.amount
+        display_name = f"{member.first_name}_{member.last_name}".strip()
         members_loans_info.append({
             'user_id': member.id,  # Ensure user_id is included
-            'username': member.username,
+            'display_name': display_name,
             'phone_number': member.profile.phone_number,
             'loan_status': loan_status,
             'loan_amount': loan_amount
         })
 
-    total_loans = Loan.objects.filter(status='Approved', date__year=selected_year).aggregate(Sum('amount'))['amount__sum'] or 0
-    years = list(range(2018, current_year + 1))
-
     context = {
         'members_loans_info': members_loans_info,
-        'total_loans': total_loans,
-        'total_year_loans': total_loans,
-        'years': years,
+        'total_loans': total_loans_all_years,  # Total of all years
+        'total_year_loans': total_year_loans,  # Total for the selected year
+        'years': list(range(2018, current_year + 1)),
         'selected_year': selected_year,
     }
 
@@ -785,6 +833,20 @@ def verification(request):
         for change in pending_changes:
             if isinstance(change.data, str):
                 change.data = json.loads(change.data)
+           
+            # Create display name in "First_Last" format if user data is present
+            if 'user' in change.data and change.data['user']:
+                user_identifier = change.data['user']     
+           # Check if `user_identifier` is a digit (an ID) or a username
+                if str(user_identifier).isdigit():
+                    user = User.objects.filter(id=user_identifier).first()
+                else:
+                    user = User.objects.filter(username=user_identifier).first()
+
+                if user:
+                    change.data['display_name'] = f"{user.first_name}_{user.last_name}".strip()
+                else:
+                    change.data['display_name'] = "Unknown User"
 
         # Render the verification page with the pending changes.
         return render(request, 'adminApp/verification.html', {'pending_changes': pending_changes})
@@ -976,6 +1038,21 @@ def verified_actions(request):
         for change in verified_changes:
             if isinstance(change.pending_change.data, str):
                 change.pending_change.data = json.loads(change.pending_change.data)
+            
+             # Create display name in "First_Last" format if user data is present
+            if 'user' in change.pending_change.data and change.pending_change.data['user']:
+                user_identifier = change.pending_change.data['user']
+
+                # Check if `user_identifier` is a digit (an ID) or a username
+                if str(user_identifier).isdigit():
+                    user = User.objects.filter(id=user_identifier).first()
+                else:
+                    user = User.objects.filter(username=user_identifier).first()
+
+                if user:
+                    change.pending_change.data['display_name'] = f"{user.first_name}_{user.last_name}".strip()
+                else:
+                    change.pending_change.data['display_name'] = "Unknown User"
 
         # Render the verified actions page with the verified changes.
         return render(request, 'adminApp/verified_actions.html', {'verified_actions': verified_changes})
@@ -995,6 +1072,21 @@ def rejected_actions(request):
         for change in rejected_actions:
             if isinstance(change.pending_change.data, str):
                 change.pending_change.data = json.loads(change.pending_change.data)
+            
+            # Create display name in "First_Last" format if user data is present
+            if 'user' in change.pending_change.data and change.pending_change.data['user']:
+                user_identifier = change.pending_change.data['user']
+
+                # Check if `user_identifier` is a digit (an ID) or a username
+                if str(user_identifier).isdigit():
+                    user = User.objects.filter(id=user_identifier).first()
+                else:
+                    user = User.objects.filter(username=user_identifier).first()
+
+                if user:
+                    change.pending_change.data['display_name'] = f"{user.first_name}_{user.last_name}".strip()
+                else:
+                    change.pending_change.data['display_name'] = "Unknown User"
 
         # Render the rejected actions page with the rejected changes.
         return render(request, 'adminApp/rejected_actions.html', {'rejected_actions': rejected_actions})

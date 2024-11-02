@@ -2,35 +2,37 @@
 
 {% block content %}
 <div class="container mt-3">
-    <div class="row">
-        <div class="table-responsive full-width-table">
-            <table class="table table-striped ">
-                <thead>
-                    <tr>
-                        <th>Na</th>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Email</th>
-                        <th>Phone Number</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td> <!-- Sequential numbering here -->
-                        <td>{{ user.profile.first_name }}</td>
-                        <td>{{ user.profile.last_name }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>{{ user.profile.phone_number }}</td>
-                        <td>
-                            <a href="{% url 'admin_App:manage_user' user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Members List</h2>
+        <!-- Add New Member Button -->
+        <a href="{% url 'admin_App:add_member' %}" class="btn" style="background-color: #D6A2AD;">Add New Member</a>
+    </div>
+
+    <div class="table-responsive full-width-table">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Na</th>
+                    <th>Full Name</th> 
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> <!-- Sequential numbering here -->
+                    <td>{{ user.profile.full_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.profile.phone_number }}</td>
+                    <td>
+                        <a href="{% url 'admin_App:manage_user' user.id %}" class="btn mt-auto" style="background-color: #D6A2AD;">Manage</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

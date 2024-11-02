@@ -1,4 +1,4 @@
-{% extends 'Admin_base.html' %}
+{% extends 'admin_base.html' %}
 {% load static %}
 {% load humanize %}
 {% block content %}
@@ -54,7 +54,7 @@
                     <tbody>
                         {% for member in members_mtaji %}
                         <tr data-user-id="{{ member.user_id }}" style="cursor: pointer;">
-                            <td>{{ member.username }}</td>
+                            <td>{{ member.display_name }}</td>
                             <td>{{ member.amount|floatformat:0|intcomma }} Tsh</td>
                         </tr>
                         {% endfor %}

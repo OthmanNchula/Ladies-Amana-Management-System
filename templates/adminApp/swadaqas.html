@@ -59,7 +59,7 @@
                     <tbody>
                         {% for member in members_swadaqa %}
                             <tr data-user-id="{{ member.user_id }}" style="cursor: pointer;">
-                                <td>{{ member.username }}</td>
+                                <td>{{ member.display_name }}</td>
                                 <td>{{ member.amount|floatformat:0|intcomma }} Tsh </td>
                             </tr>
                         {% endfor %}

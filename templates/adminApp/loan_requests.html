@@ -20,7 +20,8 @@
                     <tbody>
                         {% for loan in loans %}
                             <tr>
-                                <td>{{ loan.user.username }}</td>
+                                <!-- Display member's full name in "First_Last" format -->
+                                <td>{{ loan.user.first_name }}_{{ loan.user.last_name }}</td>
                                 <td>{{ loan.amount|floatformat:0|intcomma }} Tsh</td>
                                 <td>{{ loan.date }}</td>
                                 <td>{{ loan.status }}</td>

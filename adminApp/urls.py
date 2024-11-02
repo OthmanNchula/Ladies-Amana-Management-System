@@ -16,6 +16,7 @@ urlpatterns = [
 
     
     #members
+    path('add-member/', views.add_member, name='add_member'),
     path('members/', views.members, name='members'),
     path('manage-user/<int:user_id>/', views.manage_user, name='manage_user'),
     path('manage-user/<int:user_id>/view-details/', views.view_member_details, name='view_member_details'),

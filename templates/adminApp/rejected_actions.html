@@ -17,18 +17,22 @@
         </thead>
         <tbody>
             {% for change in rejected_actions %}
-            {% if change.pending_change %}
-            <tr>
-                <td>{{ change.pending_change.action_no }}</td>
-                <td>{{ change.rejected_at }}</td>
-                <td>{{ change.pending_change.admin.username }}</td>
-                <td>{{ change.pending_change.data.user }}</td>
-                <td>{{ change.pending_change.table_name }}</td>
-                <td>{{ change.pending_change.action }}</td>
-                <td>{{ change.pending_change.data.amount }}</td>
-                <td>Rejected</td>
-            </tr>
-            {% endif %}
+                {% if change.pending_change %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> <!-- Sequential numbering here -->
+                    <td>{{ change.rejected_at }}</td>
+                    <td>{{ change.pending_change.admin.username }}</td>
+                    <td>{{ change.pending_change.data.display_name }}</td> <!-- Display formatted name -->
+                    <td>{{ change.pending_change.table_name }}</td>
+                    <td>{{ change.pending_change.action }}</td>
+                    <td>{{ change.pending_change.data.amount }}</td>
+                    <td>Rejected</td>
+                </tr>
+                {% endif %}
+            {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center">No rejected actions found.</td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>

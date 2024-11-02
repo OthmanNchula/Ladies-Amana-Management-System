@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import UserRegistrationForm, UserLoginForm
+from .forms import UserLoginForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -13,6 +13,9 @@ from .models import PaymentScreenshot
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.urls import reverse_lazy
 from adminApp.models import Notification
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+
 
 
 def generate_unique_username(first_name, last_name):
@@ -24,60 +27,57 @@ def generate_unique_username(first_name, last_name):
         counter += 1
     return username
 
-# Registration view
-def register(request):
-    error = ''
-    form = UserRegistrationForm()
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.username = generate_unique_username(form.cleaned_data['first_name'], form.cleaned_data['last_name'])
-            user.save()
-            Profile.objects.update_or_create(
-                user=user,
-                defaults={
-                    'phone_number': form.cleaned_data['phone_number'],
-                    'first_name': form.cleaned_data['first_name'],
-                    'last_name': form.cleaned_data['last_name'],
-                    'nida': form.cleaned_data['nida'],
-                    'birth_date': form.cleaned_data['birth_date'],
-                    'gender': form.cleaned_data['gender'],
-                    'next_of_kin_first_name': form.cleaned_data['next_of_kin_first_name'],
-                    'next_of_kin_last_name': form.cleaned_data['next_of_kin_last_name'],
-                    'next_of_kin_phone_number': form.cleaned_data['next_of_kin_phone_number'],
-                }
-            )
-
-            password = form.cleaned_data['password1']
-            user = authenticate(request, username=user.username, password=password)
-            if user is not None:
-                login(request, user)
-                return HttpResponseRedirect(reverse('login_App:user_dashboard'))
-            
-            return HttpResponseRedirect(reverse('login_App:login'))
-        else:
-            error = 'Your password is not strong enough or both passwords must be the same'
-
-    return render(request, 'loginApp/register.html', context={'form': form, 'is_login_page': True, 'error': error})
-
 # Login view
+
 def login_view(request):
     form = UserLoginForm()
     if request.method == 'POST':
         form = UserLoginForm(data=request.POST)
         if form.is_valid():
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
-            username = f"{first_name}_{last_name}"
+            # Use full name to get the actual username
+            full_name = form.cleaned_data['full_name']
             password = form.cleaned_data['password']
+
+            # Fetch the user profile based on full_name
+            try:
+                profile = Profile.objects.get(full_name=full_name)
+                username = profile.user.username
+            except Profile.DoesNotExist:
+                messages.error(request, 'Invalid full name or password')
+                return render(request, 'loginApp/login.html', context={'form': form, 'is_login_page': True})
+
+            # Authenticate using the fetched username
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
+
+                # Check if this is the first login and prompt for password change if needed
+                if user.profile.must_change_password:
+                    return redirect('login_App:change_password_prompt')
+
                 return redirect(reverse('login_App:user_dashboard'))
             else:
-                messages.error(request, 'Invalid first name, last name or password')
+                messages.error(request, 'Invalid full name or password')
     return render(request, 'loginApp/login.html', context={'form': form, 'is_login_page': True})
+
+
+
+@login_required
+def change_password_prompt(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important to keep the user logged in
+            # Mark the password as no longer needing change
+            user.profile.must_change_password = False
+            user.profile.save()
+            messages.success(request, 'Your password has been updated successfully!')
+            return redirect('login_App:edit_info')
+    else:
+        form = PasswordChangeForm(user=request.user)
+    
+    return render(request, 'loginApp/change_password_prompt.html', {'form': form})
 
 # User dashboard view
 @login_required(login_url='/account/login/')
@@ -91,22 +91,28 @@ def edit_info(request):
     if request.method == 'POST':
         form = EditInfoForm(request.POST, instance=user)
         if form.is_valid():
+            full_name = form.cleaned_data['full_name'].strip().split()
+            user.first_name = full_name[0]
+            user.last_name = " ".join(full_name[1:]) if len(full_name) > 1 else ""
             user.email = form.cleaned_data['email']
+            user.save()
+
+            # Update Profile-specific fields
             profile.phone_number = form.cleaned_data['phone_number']
-            profile.first_name = form.cleaned_data['first_name']
-            profile.last_name = form.cleaned_data['last_name']
             profile.nida = form.cleaned_data['nida']
             profile.birth_date = form.cleaned_data['birth_date']
             profile.next_of_kin_first_name = form.cleaned_data['next_of_kin_first_name']
             profile.next_of_kin_last_name = form.cleaned_data['next_of_kin_last_name']
             profile.next_of_kin_phone_number = form.cleaned_data['next_of_kin_phone_number']
-            user.save()
+            profile.full_name = f"{user.first_name} {user.last_name}"
             profile.save()
             messages.success(request, 'Your profile was successfully updated!')
-            return redirect('login_App:edit_info')
+            return redirect('login_App:user_dashboard')
     else:
-        form = EditInfoForm(instance=user)
-        form.fields['phone_number'].initial = profile.phone_number
+        # Pre-fill full_name as a single string
+        initial_full_name = f"{user.first_name} {user.last_name}".strip()
+        form = EditInfoForm(instance=profile, initial={'full_name': initial_full_name})
+    
     return render(request, 'loginApp/edit_info.html', {'form': form})
 
 @login_required(login_url='/account/login/')
@@ -128,7 +134,7 @@ def upload_payment_image(request):
                 )
                 
             messages.success(request, 'Image uploaded successfully.')
-            return render(request, 'loginApp/upload_payment_image.html', {'form': form}) # Redirect to user dashboard or another page
+            return render(request, 'loginApp/user_dashboard.html', {'form': form}) # Redirect to user dashboard or another page
     else:
         form = PaymentScreenshotForm()
     return render(request, 'loginApp/upload_payment_image.html', {'form': form})

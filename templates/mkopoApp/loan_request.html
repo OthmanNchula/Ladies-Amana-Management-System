@@ -9,7 +9,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title">Jumla ya mkopo</h5>
-                    <p class="card-text">{{ total_loan_amount|floatformat:0 }} Tsh</p>
+                    <p class="card-text">{{ total_loan_amount|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -17,7 +17,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title">Jumla ya Rejesho</h5>
-                    <p class="card-text">{{ total_payment_to_date|floatformat:0 }} Tsh</p>
+                    <p class="card-text">{{ total_payment_to_date|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -25,7 +25,7 @@
             <div class="card text-center shadow h-100">
                 <div class="card-body">
                     <h5 class="card-title">Kiasi kilichobaki</h5>
-                    <p class="card-text">{{ total_remaining|floatformat:0 }} Tsh</p>
+                    <p class="card-text">{{ total_remaining|floatformat:0|intcomma }} Tsh</p>
                 </div>
             </div>
         </div>
@@ -101,7 +101,7 @@
                             {% for loan in loans %}
                             <tr>
                                 <td>{{ loan.date }}</td>
-                                <td>{{ loan.amount }}</td>
+                                <td>{{ loan.amount|intcomma }}</td>
                                 <td>{{ loan.status }}</td>
                             </tr>
                             {% endfor %}

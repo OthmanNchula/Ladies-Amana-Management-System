@@ -1,4 +1,6 @@
 {% extends 'admin_base.html' %}
+{% load humanize %}  <!-- Load humanize for intcomma filter -->
+
 {% block content %}
 <div class="container mt-4">
     <h2>Pending Changes for Verification</h2>
@@ -19,13 +21,13 @@
         <tbody>
             {% for change in pending_changes %}
             <tr>
-                <td>{{ change.action_no }}</td>
+                <td>{{ forloop.counter }}</td> <!-- Sequential numbering here -->
                 <td>{{ change.created_at }}</td>
                 <td>{{ change.admin.username }}</td>
-                <td>{{ change.data.user }}</td>
+                <td>{{ change.data.display_name }}</td>
                 <td>{{ change.table_name }}</td>
                 <td>{{ change.action }}</td>
-                <td>{{ change.data.amount }}</td>
+                <td>{{ change.data.amount|intcomma }}</td>  <!-- Apply intcomma filter here -->
                 <td>
                     <form method="post" action="{% url 'admin_App:approve_change' change.action_no %}">
                         {% csrf_token %}
@@ -38,7 +40,6 @@
                         <button type="submit" class="btn btn-danger">Reject</button>
                     </form>
                 </td>
-                
             </tr>
             {% endfor %}
         </tbody>

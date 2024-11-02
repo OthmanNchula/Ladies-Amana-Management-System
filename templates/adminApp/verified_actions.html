@@ -1,4 +1,6 @@
 {% extends 'admin_base.html' %}
+{% load humanize %}  <!-- Load humanize to use intcomma -->
+
 {% block content %}
 <div class="container mt-4">
     <h2>Verified Actions</h2>
@@ -18,13 +20,13 @@
         <tbody>
             {% for change in verified_actions %}
             <tr>
-                <td>{{ change.pending_change.action_no }}</td>
+                <td>{{ forloop.counter }}</td> <!-- Sequential numbering here -->
                 <td>{{ change.verified_at }}</td>
                 <td>{{ change.pending_change.admin.username }}</td>
-                <td>{{ change.pending_change.data.user }}</td> <!-- Accessing the 'user' field -->
+                <td>{{ change.pending_change.data.display_name }}</td>
                 <td>{{ change.pending_change.table_name }}</td>
                 <td>{{ change.pending_change.action }}</td>
-                <td>{{ change.pending_change.data.amount }}</td> <!-- Accessing the 'amount' field -->
+                <td>{{ change.pending_change.data.amount|intcomma }}</td> <!-- Apply intcomma here -->
                 <td>Approved</td>
             </tr>
             {% endfor %}

@@ -7,7 +7,6 @@
     <div class="links">
         {% if is_login_page %}
             <!-- Show these links when on the login page -->
-            <a href="{% url 'login_App:register' %}">Register</a>
             <a href="{% url 'login_App:login' %}">Login</a>
             <a href="{% url 'admin_App:admin_login' %}">Admin</a>
         {% elif user.is_authenticated %}
@@ -33,7 +32,6 @@
             </form>
         {% else %}
             <!-- Fallback for non-authenticated users on other pages -->
-            <a href="{% url 'login_App:register' %}">Register</a>
             <a href="{% url 'login_App:login' %}">Login</a>
             <a href="{% url 'admin_App:admin_login' %}">Admin</a>
         {% endif %}
@@ -45,7 +43,6 @@
 <div class="mobile-menu">
     {% if is_login_page %}
         <!-- Show these links when on the login page -->
-        <a href="{% url 'login_App:register' %}">Register</a>
         <a href="{% url 'login_App:login' %}">Login</a>
         <a href="{% url 'admin_App:admin_login' %}">Admin</a>
     {% elif user.is_authenticated %}
