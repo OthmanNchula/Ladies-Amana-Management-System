@@ -32,7 +32,7 @@ from .models import Notification
 from django.urls import reverse
 from .forms import AddMemberForm
 from loginApp.models import Profile  # Import Profile model
-
+from decimal import Decimal, InvalidOperation
 def admin_login(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -238,18 +238,26 @@ def manage_mtaji(request, user_id):
             messages.error(request, "You are not authorized to update Mtaji data.")
             return redirect('admin_App:manage_mtaji', user_id=user.id)
         
-        amount = request.POST.get('amount_{}'.format(selected_year))
+        # Get the amount from POST and convert it to a decimal
+        amount = request.POST.get(f'amount_{selected_year}')
         if amount:
-            mtaji, created = Mtaji.objects.update_or_create(
-                user=user, 
-                year=selected_year,
-                defaults={'amount': amount}
-            )
-            # Pass the modified_by user (the admin) to the save method
-            mtaji.save(modified_by=request.user)
+            # Remove any formatting before converting to a decimal
+            amount = amount.replace(',', '')
+            try:
+                amount = Decimal(amount)
+                mtaji, created = Mtaji.objects.update_or_create(
+                    user=user, 
+                    year=selected_year,
+                    defaults={'amount': amount}
+                )
+                # Pass the modified_by user (the admin) to the save method
+                mtaji.save(modified_by=request.user)
+            except (ValueError, InvalidOperation):
+                messages.error(request, "Invalid amount format. Please enter a valid number.")
+                return redirect('admin_App:manage_mtaji', user_id=user.id)
+
             # Redirect to the same page with the selected year after saving
             return redirect(f'{reverse("admin_App:manage_mtaji", kwargs={"user_id": user.id})}?year={selected_year}')
-
 
     context = {
         'managed_user': user,
@@ -362,44 +370,48 @@ def save_mchango(request, user_id):
 def manage_swadaqa(request, user_id):
     user = get_object_or_404(User, id=user_id)
     
-     # Create display name in "First_Last" format
+    # Create display name in "First_Last" format
     display_name = f"{user.first_name}_{user.last_name}".strip()
-    
-    # Create a list of years
+
+    # Generate years from 2018 to the current year
     years = [year for year in range(2018, timezone.now().year + 1)]
     current_year = timezone.now().year
-    
-    selected_year = int(request.GET.get('year', current_year)) # Use the selected year from the request
-    
-    # Retrieve the Swadaqa for the selected year.
+    selected_year = int(request.GET.get('year', current_year))
+
     try:
         swadaqa_record = Swadaqa.objects.get(user=user, year=selected_year)
         current_amount = swadaqa_record.amount
     except Swadaqa.DoesNotExist:
         current_amount = 0
 
-    # Handle form submission
     if request.method == 'POST':
         if request.user.username == 'admin1':
             messages.error(request, "You are not authorized to update Swadaqa data.")
             return redirect(f'{reverse("admin_App:manage_swadaqa", kwargs={"user_id": user.id})}?year={selected_year}')
         
-        amount = request.POST.get('amount_{}'.format(selected_year))  # Use selected_year instead of current_year
+        # Get the amount from POST and convert it to a decimal
+        amount = request.POST.get(f'amount_{selected_year}')
         if amount:
-            swadaqa, created = Swadaqa.objects.update_or_create(
-                user=user,
-                year=selected_year,
-                defaults={'amount': amount}
-            )
-            # Ensure modified_by is set
-            swadaqa.save(modified_by=request.user)
+            amount = amount.replace(',', '')  # Remove any commas before conversion
+            try:
+                amount = Decimal(amount)
+                swadaqa, created = Swadaqa.objects.update_or_create(
+                    user=user,
+                    year=selected_year,
+                    defaults={'amount': amount}
+                )
+                swadaqa.save(modified_by=request.user)
+            except (ValueError, InvalidOperation):
+                messages.error(request, "Invalid amount format. Please enter a valid number.")
+                return redirect(f'{reverse("admin_App:manage_swadaqa", kwargs={"user_id": user.id})}?year={selected_year}')
+            
             return redirect(f'{reverse("admin_App:manage_swadaqa", kwargs={"user_id": user.id})}?year={selected_year}')
 
     context = {
         'managed_user': user,
         'display_name': display_name,
         'years': years,
-        'current_year': selected_year,  # Ensure this reflects the selected year
+        'current_year': selected_year,
         'current_amount': current_amount,
         'show_back_button': True,
     }

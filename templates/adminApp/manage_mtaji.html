@@ -67,18 +67,18 @@
         const amountInput = document.getElementById('amount');
         const totalAmount = document.getElementById('total-amount');
         const saveButton = document.getElementById('save-button');
-        const originalAmount = amountInput.value;
+        const originalAmount = amountInput.value.replace(/ /g, '').trim();
 
         function formatAmount(value) {
             if (!value || value.trim() === '0') {
                 return ''; // Return empty string if there's no value or it's zero
             }
-            return parseInt(value.replace(/,/g, ''), 10).toLocaleString() + ' Tsh';
+            return parseInt(value.replace(/,/g, ''), 10).toLocaleString();
         }
 
         function checkInput() {
             const formattedAmount = formatAmount(amountInput.value);
-            totalAmount.innerText = formattedAmount;
+            totalAmount.innerText = formattedAmount + ' Tsh'; // Display formatted amount with 'Tsh'
 
             if (amountInput.value !== '' && amountInput.value !== originalAmount) {
                 saveButton.style.display = 'block';
@@ -87,11 +87,22 @@
             }
         }
 
-        amountInput.addEventListener('input', checkInput);
+        amountInput.addEventListener('input', function() {
+            // Remove commas in real-time as the user types
+            let cleanValue = amountInput.value.replace(/,/g, '');
+            if (!isNaN(cleanValue) && cleanValue !== '') {
+                amountInput.value = formatAmount(cleanValue);
+            }
+            checkInput();
+        });
+
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function() {
+            amountInput.value = amountInput.value.replace(/,/g, ''); // Remove commas
+        });
 
         // Format the input value initially
-        amountInput.value = formatAmount(amountInput.value);
-
+        amountInput.value = formatAmount(originalAmount);
         checkInput();
     });
 </script>

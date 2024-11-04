@@ -1,6 +1,7 @@
 {% extends 'admin_base.html' %}
 {% load static %}
 {% load humanize %}
+
 {% block content %}
 <div class="container mt-3">
     <!-- Back Button -->
@@ -20,7 +21,6 @@
                     {% for year in years %}
                     <li class="nav-item" style="margin-right: 15px;">
                         <a href="?year={{ year }}" class="nav-link year-link {% if year == current_year %}active{% endif %}" data-year="{{ year }}">{{ year }}</a>
-                    </li>
                     </li>
                     {% endfor %}
                 </ul>
@@ -45,7 +45,6 @@
                                 <td id="selected-year">{{ current_year }}</td>
                                 <td>
                                     <input type="text" name="amount_{{ current_year }}" id="amount" class="form-control" value="{% if current_amount %}{{ current_amount|floatformat:0|intcomma }}{% endif %}" />
-
                                 </td>
                             </tr>
                             <tr>
@@ -60,23 +59,24 @@
         </div>
     </div>
 </div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const amountInput = document.getElementById('amount');
         const totalAmount = document.getElementById('total-amount');
         const saveButton = document.getElementById('save-button');
-        const originalAmount = amountInput.value;
+        const originalAmount = amountInput.value.replace(/ Tsh/g, '').trim();
 
         function formatAmount(value) {
             if (!value || value.trim() === '0') {
                 return ''; // Return empty string if there's no value or it's zero
             }
-            return parseInt(value.replace(/,/g, ''), 10).toLocaleString() + ' Tsh';
+            return parseInt(value.replace(/,/g, ''), 10).toLocaleString();
         }
 
         function checkInput() {
             const formattedAmount = formatAmount(amountInput.value);
-            totalAmount.innerText = formattedAmount;
+            totalAmount.innerText = formattedAmount + ' Tsh'; // Display formatted amount with 'Tsh'
 
             if (amountInput.value !== '' && amountInput.value !== originalAmount) {
                 saveButton.style.display = 'block';
@@ -85,11 +85,13 @@
             }
         }
 
-        amountInput.addEventListener('input', checkInput);
+        amountInput.addEventListener('input', function() {
+            amountInput.value = formatAmount(amountInput.value); // Remove 'Tsh' from input
+            checkInput();
+        });
 
         // Format the input value initially
-        amountInput.value = formatAmount(amountInput.value);
-
+        amountInput.value = formatAmount(originalAmount);
         checkInput();
     });
 </script>
