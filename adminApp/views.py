@@ -137,6 +137,18 @@ def manage_user(request, user_id):
     
     # Create display name in "First_Last" format
     display_name = f"{user.first_name}_{user.last_name}".strip()
+    
+    # Fetch all contributions for Mtaji
+    mtaji = Mtaji.objects.filter(user=user)
+    total_mtaji = mtaji.aggregate(Sum('amount'))['amount__sum'] or 0  # Calculate total Mtaji
+    
+    # Fetch all contributions for Michango
+    michango = Michango.objects.filter(user=user)
+    total_mchango = michango.aggregate(Sum('amount'))['amount__sum'] or 0 
+    
+    # Fetch all contributions for Swadaqa
+    swadaqa = Swadaqa.objects.filter(user=user)
+    total_swadaqa = swadaqa.aggregate(Sum('amount'))['amount__sum'] or 0 
 
     # Start with the 'loans' data
     loans = Loan.objects.filter(user=user)
@@ -150,8 +162,11 @@ def manage_user(request, user_id):
         'display_name': display_name,
         'loans': loans,
         'mtaji': mtaji,
+        'total_mtaji': total_mtaji,
         'michango': michango,
+        'total_mchango': total_mchango,
         'swadaqa': swadaqa,
+        'total_swadaqa': total_swadaqa,
         'show_back_button': True,
     }
     return render(request, 'adminApp/manage_dashboard.html', context)
@@ -610,13 +625,14 @@ def mitaji_view(request):
     
     members_mtaji = []
     for member in members:
+        # Calculate total amount for all years        
         mtaji = Mtaji.objects.filter(user=member, year=selected_year).first()
         amount = mtaji.amount if mtaji else 0
         display_name = f"{member.first_name}_{member.last_name}".strip()
         members_mtaji.append({
             'user_id': member.id,
             'display_name': display_name,
-            'amount': amount
+            'amount': amount,
         })
 
     context = {

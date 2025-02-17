@@ -34,5 +34,9 @@ class PaymentScreenshotForm(forms.ModelForm):
         model = PaymentScreenshot
         fields = ['image', 'description']
         widgets = {
-            'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter a brief description'}),
+            'description': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Enter a brief description',
+                'style': 'width: 100%; max-width: 100%;'  # Ensures it fits within container width
+            }),
         }

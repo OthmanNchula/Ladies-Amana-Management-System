@@ -676,3 +676,13 @@ body.admin-page, html.admin-page {
     width: 3rem;
     height: 3rem;
 }
+
+/* =============================== */
+/* upload payments */
+/* =============================== */
+@media (max-width: 576px) {
+    .form-control, .description-textarea {
+        width: 100%;
+        max-width: 100%;
+    }
+}

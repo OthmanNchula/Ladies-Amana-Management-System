@@ -15,7 +15,13 @@ from django.urls import reverse_lazy
 from adminApp.models import Notification
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
-
+from django.db.models import Sum
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from mtajiApp.models import Mtaji
+from michangoApp.models import Michango
+from swadaqaApp.models import Swadaqa
+from mkopoApp.models import Loan
 
 
 def generate_unique_username(first_name, last_name):
@@ -62,7 +68,7 @@ def login_view(request):
 
 
 
-@login_required
+@login_required(login_url='/account/login/')
 def change_password_prompt(request):
     if request.method == 'POST':
         form = PasswordChangeForm(user=request.user, data=request.POST)
@@ -82,7 +88,23 @@ def change_password_prompt(request):
 # User dashboard view
 @login_required(login_url='/account/login/')
 def user_dashboard(request):
-    return render(request, 'loginApp/user_dashboard.html')
+    # Get the logged-in user
+    user = request.usere
+
+    # Calculate totals for Mtaji, Michango, and Swadaqa
+    total_mtaji = Mtaji.objects.filter(user=user).aggregate(Sum('amount'))['amount__sum'] or 0
+    total_mchango = Michango.objects.filter(user=user).aggregate(Sum('amount'))['amount__sum'] or 0
+    total_swadaqa = Swadaqa.objects.filter(user=user).aggregate(Sum('amount'))['amount__sum'] or 0
+        
+    # Pass data to the template
+    context = {
+        'user': user,
+        'total_mtaji': total_mtaji,
+        'total_mchango': total_mchango,
+        'total_swadaqa': total_swadaqa,
+    }
+    return render(request, 'loginApp/user_dashboard.html', context)
+
 
 @login_required
 def edit_info(request):

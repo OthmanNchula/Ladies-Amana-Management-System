@@ -18,6 +18,7 @@
                 <a href="{% url 'michango_App:mchango' %}">Michango</a>
                 <a href="{% url 'swadaqa_App:swadaqa' %}">Swadaqa</a>
                 <a href="{% url 'mkopo_App:loan_request' %}">Mkopo</a>
+                <a href="{% url 'login_App:edit_info' %}">Edit Info</a>
             {% endif %}
             <a href="{% url 'admin_App:notifications' %}" class="notification-bell">
                 <i class="fa fa-bell"></i>
@@ -25,6 +26,7 @@
                     <span class="badge">{{ unread_notifications_count }}</span>
                 {% endif %}
             </a>
+            
             <form method="post" action="{% url 'login_App:logout' %}" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="nav-link btn btn-link" style="color:black; text-decoration:none;">Logout</button>
